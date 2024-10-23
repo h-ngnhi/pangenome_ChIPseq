@@ -1,4 +1,5 @@
-include * from './linear_Genpipes.nf'
+include './linear_Genpipes.nf'
+
 
 process read_input_file {
     input:
@@ -19,9 +20,26 @@ process read_input_file {
     fastq2s=(\$(awk 'NR>1 {print \$5}' ${input_file} | tr '\\n' ' '))
     """
 }
-// Ensure that users provide required parameters
-if (!params.markname || params.treatment_fastq_fw.size() == 0 || params.treatment_fastq_rv.size() == 0 || params.control_fastq_fw.size() == 0 || params.control_fastq_rv.size() == 0) {
-    exit 1, "ERROR: Required parameters are missing. Please provide 'markname', 'treatment_fastq_fw', 'treatment_fastq_rv', 'control_fastq_fw', and 'control_fastq_rv'."
+
+// Display help message if requested
+if (params.help) {
+    log.info """
+    Usage: nextflow run hoangnhi-nguyen/pangenome_ChIPseq [options]
+
+    Options:
+    --input             Path to the input file (required)
+    --ref               Reference graph type (default: graph)
+
+    --cpus              Number of CPUs to allocate (default: 64)
+    --memory            Memory allocation (default: 249 GB)
+    --time              Time allocation (default: 24h)
+
+    -h, --help          Show this help message and exit
+
+    Example:
+    nextflow run h-ngnhi/pangenome_ChIPseq --input input.txt --cpus 64 --memory '249 GB' --time '24h'
+    """
+    exit 0
 }
 
 workflow {
