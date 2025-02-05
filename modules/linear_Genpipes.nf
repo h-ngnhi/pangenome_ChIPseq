@@ -3,20 +3,18 @@ process create_readset_tsv {
     tuple val(markname), val(library), val(samples), val(fastq1s), val(fastq2s)
 
     output:
-    path "${markname}.readset.tsv"
+    path "${markname}.readset_nf.tsv"
 
     script:
     """
-    output_tsv="${markname}.readset.tsv"
+    output_tsv="${markname}.readset_nf.tsv"
     echo -e "Sample\tReadset\tMarkName\tMarkType\tLibrary\tRunType\tRun\tLane\tAdapter1\tAdapter2\tQualityOffset\tBED\tFASTQ1\tFASTQ2\tBAM" > \$output_tsv
-    for i in \$(seq 0 \$((${#samples[@]}-1))); do
-        if [[ \$sample == *"control"* ]]; then
-            marktype="Input"
-        else
-            marktype=\${markname}
-        fi
-        echo -e "\${samples[\$i]}\t\${samples[\$i]}\t\${markname}\t\${marktype}\t\${library}\tPAIRED_END\trun10\t1\t\t\t33\t\t\${fastq1s[\$i]}\t\${fastq2s[\$i]}\t" >> \$output_tsv
+    for i in \$(seq 0 \$((\${#samples[@]}-2))); do
+        sample=\${samples[\$i]}
+        echo -e "\${samples}\t\${samples}\t\${markname}\tN\t\${library}\trun10\t1\t\t\t33\t\t\${fastq1s[\$i]}\t\${fastq2s[\$i]}\t" >> \$output_tsv
     done
+
+    echo -e "\${samples[-1]}\t\${samples[-1]}\tInput\tI\t\${library}\trun10\t1\t\t\t33\t\t\${fastq1s[-1]}\t\${fastq2s[-1]}\t" >> \$output_tsv
     """
 }
 
@@ -25,13 +23,13 @@ process create_design_txt {
     tuple val(markname), val(samples)
 
     output:
-    path "${markname}.design.txt"
+    path "${markname}.design_nf.txt"
 
     script:
     """
-    output_txt="${markname}.design.txt"
+    output_txt="${markname}.design_nf.txt"
     echo -e "Sample\tMarkName\t${markname}_vs_${markname}Input" > \$output_txt
-    for i in \$(seq 0 \$((${#samples[@]}-2))); do
+    for i in \$(seq 0 \$((\${#samples[@]}-2))); do
         sample=\${samples[\$i]}
         echo -e "\${samples[\$i]}\t\$markname\t0" >> \$output_txt
     done
@@ -41,11 +39,11 @@ process create_design_txt {
 
 process create_config_ini {
     output:
-    path "T2T.ini"
+    path "T2T_nf.ini"
 
     script:
     """
-    output_ini_file="T2T.ini"
+    output_ini_file="T2T_nf.ini"
 
     cat <<EOL > \$output_ini_file
 [DEFAULT]
@@ -72,21 +70,21 @@ EOL
 //Will modify when adding chipseq for graph
 process chipseq_linear() {
     input:
-    tuple path(readset_tsv), path(design_txt), path(ini_file)
+    tuple val(markname). path(readset_tsv), path(design_txt), path(ini_file)
 
     output:
-    path "${params.markname}_CHM13linear"
+    path "${markname}_CHM13linear_nf"
 
     script:
     """
     module load mugqic/genpipes/4.4.5
     module load mugqic/python/3.10.4
-    directory="${params.markname}_CHM13linear"
+    directory="${markname}_CHM13linear_nf"
     mkdir -p \$directory
     #\$MUGQIC_PIPELINES_HOME only available to ls command after loading mugqic/genpipes/4.4.5
     chipseq.py -c \$MUGQIC_PIPELINES_HOME/pipelines/chipseq/chipseq.base.ini \
                 \$MUGQIC_PIPELINES_HOME/pipelines/common_ini/narval.ini $ini_file \
-                -r $readset_tsv -d $design_txt -o $directory > "chipseqScript_${params.markname}.txt" 
-    bash "chipseqScript_${params.markname}.txt" 
+                -r $readset_tsv -d $design_txt -o $directory > "chipseqScript_${markname}_nf.txt" 
+    bash "chipseqScript_${markname}_nf.txt" 
     """
 }
