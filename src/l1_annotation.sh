@@ -10,6 +10,8 @@
 # Enable xtrace to log the commands to stderr
 set -x
 
+zcat genome_data/hprc-v1.1-mc-chm13.vcfbub.a100k.wave.vcf.gz | less
+
 export wd=/home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome
 export graph_type=Graph_genome_chm13_trimmomatic
 graph_dir=$wd/$graph_type

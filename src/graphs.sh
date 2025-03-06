@@ -34,12 +34,12 @@ vg_map_graph() {                 # To create graph and index for vg map
     else
         module load tabix
         mkdir -p vcf
-        (seq 1 22; echo X; echo M) | parallel -j 24 "tabix -h $variant_vcf chr{} > vcf/chr{}.vcf ; bgzip vcf/chr{}.vcf ; tabix vcf/chr{}.vcf.gz"
+        (seq 1 22; echo X; echo M) | parallel -j 24 "tabix -f -h $variant_vcf chr{} > vcf/chr{}.vcf ; bgzip vcf/chr{}.vcf ; tabix vcf/chr{}.vcf.gz"
         (seq 1 22; echo X; echo M) | parallel -j 6 "vg construct -S -a -p -C -R chr{} -v vcf/chr{}.vcf.gz -r $ref -t 1 -m 32 > graphs/chr{}.vg"
         vg ids -j -m mapping.txt graphs/chr*.vg
         # Adding variants --> need to create gbwt (haplotype-aware index) file
-        (seq 1 22; echo X; echo M) | parallel -j 8 "touch -h vcf/chr{}.vcf.gz.tbi ; vg index -G graphs/chr{}.gbwt -v vcf/chr{}.vcf.gz graphs/chr{}.vg"
-        vg gbwt -m -f -o graph.gbwt graphs/chr*.gbwt
+        (seq 1 22; echo X; echo M) | parallel -j 8 "vg gbwt -x graphs/chr{}.vg -v vcf/chr{}.vcf.gz -o graphs/chr{}.gbwt"
+        vg gbwt -m -o graph.gbwt graphs/chr*.gbwt
         vg index -x graph.xg graphs/chr*.vg 
         # Prune the graph for gcas index
         mkdir -p graphs_pruned
@@ -49,7 +49,25 @@ vg_map_graph() {                 # To create graph and index for vg map
     cd $wd || exit
 }
 
+vg_map_convert() {                  # To index from gbz graph for vg_map
+    local ref=$1
+    local graph_dir=$wd/Pangenomes/vg_map/${ref}_converted
+    local gbz_dir=$wd/Pangenomes/vg_giraffe/$ref
 
+    mkdir -p $graph_dir
+    mkdir -p $graph_dir/graphs
+    cp $gbz_dir/graphs/*.vg $graph_dir/graphs
+    cd $graph_dir
+
+    vg ids -j -m mapping.txt graphs/chr*.vg
+    # Adding variants --> need to create gbwt (haplotype-aware index) file
+    vg gbwt -Z $gbz_dir/$ref.gbz -o $ref.gbwt
+    vg index -x $ref.xg graphs/chr*.vg 
+    # Prune the graph for gcas index
+    mkdir -p graphs_pruned
+    (seq 1 22; echo X; echo Y; echo M) | parallel -j 6 "vg prune -u -a -m mapping.txt graphs/chr{}.vg > graphs_pruned/chr{}.pruned.vg"
+    vg index -g $ref.gcsa -f mapping.txt -Z 4096 graphs_pruned/*.vg -t 40
+}
 
 alignment() {                   # To map reads using vgmap
     local pipeline=$1       # vg_giraffe or vg_map
@@ -90,30 +108,11 @@ alignment() {                   # To map reads using vgmap
     cd $wd || exit
 }
 
-# samtools view 146_vgmap_results/L1_vcfbub/treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
-# awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-# awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
-# awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
-# awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
-pipeline=vg_giraffe
-ref=L1_vcfbub
-data_dir=$wd/Graph_genome_data
-results_dir=$wd/146_giraffe_results/$ref
-# data_dir=cgroza_data/H3K27AC_FLU
-# 146_treatment
-forward="$data_dir/146Rep1.trim.pair1.fastq.gz $data_dir/146Rep2.trim.pair1.fastq.gz"
-reverse="$data_dir/146Rep1.trim.pair2.fastq.gz $data_dir/146Rep2.trim.pair2.fastq.gz"
-# forward="$wd/$data_dir/treatment/H3K27AC.forward_treatment_1.fastq.gz"
-# reverse="$wd/$data_dir/treatment/H3K27AC.reverse_treatment_1.fastq.gz"
-# alignment $pipeline $ref $results_dir "$forward" "$reverse" "treatment"
-# 146_control
-forward="$data_dir/146Input.trim.pair1.fastq.gz"
-reverse="$data_dir/146Input.trim.pair2.fastq.gz"
-# alignment $pipeline $ref $results_dir "$forward" "$reverse" "control"
 
 split_graph() {                         # To split graphs by chromosomes for GP
     local pipeline=$1                   # vg_giraffe or vg_map
     local graph=$2                      # chm13 or vcfbub or hprc-v1.1-mc-chm13 or L1_vcfbub
+    local gf_sif=$3                     # directory to gf image
 
     graph_dir=$wd/Pangenomes/$pipeline/$graph
     if [ "$pipeline" == "vg_giraffe" ]; then
@@ -123,18 +122,19 @@ split_graph() {                         # To split graphs by chromosomes for GP
 
         # Change the name of the graph files to the chromosome name
         for file in $graph_dir/graphs/*.vg; do
-            chr_name=$(vg paths -L -x $file | head -n 1)
+            chr_name=$(vg paths -L -x $file | grep 'CHM13#0#chr' | head -n 1 | awk -F'#' '{print $3}' | awk -F'[' '{print $1}')
             mv $file $graph_dir/graphs/${chr_name}.vg
         done
     fi
 
     graph_dir=$graph_dir/graphs
-    Convert graphs to json
-    (seq 1 22; echo X; echo M) | parallel -j 2 "vg view -j $graph_dir/chr{}.vg > $graph_dir/chr{}.json ; vg stats -r $graph_dir/chr{}.vg | cut -f 2 > $graph_dir/node_range_chr{}.txt"
+    # Convert graphs to json
+    (seq 1 22; echo X; echo Y; echo M) | parallel -j 2 "vg view -j $graph_dir/chr{}.vg > $graph_dir/chr{}.json ; vg stats -r $graph_dir/chr{}.vg | cut -f 2 > $graph_dir/node_range_chr{}.txt"
 
     # Create ob_graph files
-    SIF_IMAGE="$wd/gp.sif"
-    BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome/${graph_dir#$wd/}:/mnt_data"
+    SIF_IMAGE="$gf_sif"
+    # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome/${graph_dir#$wd/}:/mnt_data"
+    BIND_DIR="$graph_dir:/mnt_data"
 
     module load apptainer
     apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
@@ -143,7 +143,7 @@ split_graph() {                         # To split graphs by chromosomes for GP
         done
     "
 }
-# split_graph $pipeline $ref
+
 
 callpeaks() {
     local treatment=$1              # treatment json file
@@ -154,6 +154,7 @@ callpeaks() {
     local fragment_length=$6        # fragment length
     local read_length=$7            # read length
     local unique_reads=$8           # unique reads
+    local gp_sif=$9
 
     # Prepare the parameters file for using inside the container (no indent for this command)
 cat <<EOL > $wd/params.txt
@@ -166,8 +167,9 @@ treatment=$treatment
 control=$control
 EOL
 
-    SIF_IMAGE="$wd/gp.sif"
-    BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
+    SIF_IMAGE="$gp_sif"
+    # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
+    BIND_DIR="$wd:/mnt_data"
 
     module load apptainer
     apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
