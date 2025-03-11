@@ -1,5 +1,5 @@
 #!/bin/bash -l 
-#SBATCH --job-name=convert_vcfbub
+#SBATCH --job-name=hprc_map
 #SBATCH --mem=249G
 #SBATCH --time=24:00:00
 #SBATCH -n 1
@@ -17,7 +17,7 @@ start_time=$(date +%s)
 
 # Set TMPDIR because the default /tmp is too small
 # export TMPDIR=/lustre07/scratch/hoangnhi/temp #make this input for the pipeline
-export TMPDIR=/tmp
+export TMPDIR=/home/nhi/tmp
 
 export wd=$(pwd)
 
@@ -53,21 +53,23 @@ reverse_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz"
 
 # Graphs
 # module load samtools
-# cd $wd/results/ipsc_K27_vg_giraffe_hprc-v1.1-mc-chm13
+# cd results/ipsc_K27_vg_map_L1_vcfbub_converted
 # samtools view treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
 # awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
 # awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
 # awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
 # awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
-pipeline=vg_giraffe
-ref=hprc-v1.1-mc-chm13
+pipeline=vg_map
+ref=L1_vcfbub_converted
 results_dir=$wd/results/${markname}_${pipeline}_${ref}
-# alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
 
-# alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
+vg_map_convert L1_vcfbub
+alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
+
+alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
 
 # split_graph $pipeline $ref $wd/tools/gp.sif
-vg_map_convert L1_vcfbub
+
 
 #################
 # Report some parameter before calling peak
@@ -94,8 +96,7 @@ vg_map_convert L1_vcfbub
 #   print "Reads aligning better in the variant graph: " correct_variant;
 #   print "Reads aligning better in the linear graph: " incorrect_variant;
 # }' results/compare.tsv
-vg gamcompare results/ipsc_K27_vg_giraffe_chm13/treatment_alignments.gam results/ipsc_K27_vg_map_chm13/treatment_alignments.gam -t 64 >results/compare.gam
-
+# vg gamcompare -T results/ipsc_K27_vg_giraffe_L1_vcfbub/treatment_alignments.gam results/ipsc_K27_vg_map_L1_vcfbub_converted/treatment_alignments.gam -t 64 > results/compare.tsv
 
 #-------------------
 # vg inject to inject the GenPipe alignments into the graph then call peaks

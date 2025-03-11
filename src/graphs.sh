@@ -55,18 +55,15 @@ vg_map_convert() {                  # To index from gbz graph for vg_map
     local gbz_dir=$wd/Pangenomes/vg_giraffe/$ref
 
     mkdir -p $graph_dir
-    mkdir -p $graph_dir/graphs
-    cp $gbz_dir/graphs/*.vg $graph_dir/graphs
     cd $graph_dir
 
-    vg ids -j -m mapping.txt graphs/chr*.vg
     # Adding variants --> need to create gbwt (haplotype-aware index) file
-    vg gbwt -Z $gbz_dir/$ref.gbz -o $ref.gbwt
-    vg index -x $ref.xg graphs/chr*.vg 
-    # Prune the graph for gcas index
-    mkdir -p graphs_pruned
-    (seq 1 22; echo X; echo Y; echo M) | parallel -j 6 "vg prune -u -a -m mapping.txt graphs/chr{}.vg > graphs_pruned/chr{}.pruned.vg"
-    vg index -g $ref.gcsa -f mapping.txt -Z 4096 graphs_pruned/*.vg -t 40
+    vg gbwt -Z $gbz_dir/$ref.gbz -o graph.gbwt
+    vg convert $gbz_dir/$ref.gbz > graph.vg
+    vg ids -j -m mapping.txt graph.vg
+    vg prune -u -a -m mapping.txt -g graph.gbwt graph.vg > graph.pruned.vg
+    vg index -x graph.xg graph.pruned.vg
+    vg index -g graph.gcsa -f mapping.txt -Z 4096 graph.pruned.vg -t 40
 }
 
 alignment() {                   # To map reads using vgmap
