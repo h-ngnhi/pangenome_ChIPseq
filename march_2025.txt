@@ -10,13 +10,15 @@ To-dos:
     + alignment 41240858
 - ashbi giraffe chm13
     + alignment done
-    *****+ call peak 1311787
+    *****+ call peak 1312020
 - ashbi giraffe hprc-v1.1-mc-chm13
     *****+ alignment + call peak 1311779
 - 146 map chm13
     + alignment 41240820
 - 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
     + convert graph 41241318
+- Problem call peak with hprc-v1.1-mc-chm13
+    !!! Empty chromosome ranges found (how did GP found chr range though? while vg chunk could do it...)
 
 ## 12 Mar
 - Organize rrg-bourqueg-ad
@@ -362,12 +364,12 @@ To-dos:
         0 < MAPQ < 30: 33144176
         30 <= MAPQ < 60: 45427686
         MAPQ = 60: 73307908
-    *****+ call peak 41240736
+    *****+ call peak 41242692
 - K27_FLU giraffe hprc-v1.1-mc-chm13
     + alignment 41203280
     +   MAPQ = 0: 44350289
         0 < MAPQ < 30: 31770210
         30 <= MAPQ < 60: 43273367
         MAPQ = 60: 75524184
-    *****+ call peak 41240733
-- It seems like either vg map always put read to either 0 or 60
+    *****+ call peak 41240733 >
+- It seems like either vg map always put read to either 0 or 60...

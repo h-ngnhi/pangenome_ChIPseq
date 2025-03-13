@@ -164,7 +164,7 @@ callpeaks() {
         module load macs2
         frag_len=$(macs2 predictd -i $wd/$results_dir/treatment_alignments.bam 2>&1 | fragment_length)
     fi
-    read_len=$(zcat $treatment | head -2 | tail -1 | wc -c)
+    read_len=$(zcat $forward_trm | head -2 | tail -1 | wc -c)
     unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $wd/$results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
 
     # Prepare the parameters file for using inside the container (no indent for this command)
