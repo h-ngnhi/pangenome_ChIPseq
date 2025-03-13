@@ -14,8 +14,8 @@ To-dos:
 
 - 146 map chm13
     + alignment 41240820
-- 146 map hprc-v1.1-mc-chm13
-    + alignment 41240856
+- 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
+    + convert graph 41241318
 
 ## 12 Mar
 - Organize rrg-bourqueg-ad

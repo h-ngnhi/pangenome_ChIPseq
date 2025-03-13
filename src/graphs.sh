@@ -149,15 +149,28 @@ callpeaks() {
     local results_dir=$3            # result directory
     local graph=$4                  # chm13 or vcfbub
     local pipeline=$5               # vg_giraffe or vg_map
-    local fragment_length=$6        # fragment length
-    local read_length=$7            # read length
-    local unique_reads=$8           # unique reads
-    local gp_sif=$9
+    local server=$6                 # narval or ashbi
+    local gp_sif=$7
+
+    fragment_length() {
+        grep -i "predicted fragment length is" | head -n1 | sed -E 's/.*predicted fragment length is[[:space:]]*([0-9]+).*/\1/'
+    }
+    module load apptainer
+    if [ "$server" == "narval" ]; then
+        SIF_IMAGE="$wd/tools/macs2_latest.sif"
+        BIND_DIR="$wd/$results_dir:/mnt"
+        frag_len=$(apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE macs2 predictd -i /mnt/treatment_alignments.bam 2>&1 | fragment_length)
+    elif [ "$server" == "ashbi" ]; then
+        module load macs2
+        frag_len=$(macs2 predictd -i $wd/$results_dir/treatment_alignments.bam 2>&1 | fragment_length)
+    fi
+    read_len=$(zcat $treatment | head -2 | tail -1 | wc -c)
+    unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $wd/$results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
 
     # Prepare the parameters file for using inside the container (no indent for this command)
 cat <<EOL > $wd/params.txt
-fragment_length=$fragment_length
-read_length=$read_length
+fragment_length=$frag_len
+read_length=$read_len
 unique_reads=$unique_reads
 graph=$pipeline/$graph
 results_dir=$results_dir
@@ -169,7 +182,6 @@ EOL
     # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
     BIND_DIR="$wd:/mnt_data"
 
-    module load apptainer
     apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
         while IFS= read -r line; do 
             export \$line
