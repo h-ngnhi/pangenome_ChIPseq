@@ -8,6 +8,13 @@ download_read() {
   echo "#to be edit later"
 }
 
+download_published_hprc() {
+  cd Pangenome/vg_giraffe/hprc-v1.1-mc-chm13 || exit
+  wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.gbz
+  wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.dist
+  wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.min
+}
+
 download_ENCODE() {
   local experiment_id=$1
   local folder=$2

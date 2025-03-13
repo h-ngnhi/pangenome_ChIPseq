@@ -5,20 +5,26 @@ To-dos:
 
 ## 13 Mar
 - 507 giraffe chm13
-    + alignment 41240863
+    *****+ alignment 41240863
 - 507 giraffe hprc-v1.1-mc-chm13
-    + alignment 41240858
+    *****+ alignment 41240858
 - ashbi giraffe chm13
     + alignment done
-    *****+ call peak 1312020
+    *****+ call peak 1312424
+- ashbi giraffe L1_vcfbub
+    + alignment done
+    *****+ call peak 1312483   
 - ashbi giraffe hprc-v1.1-mc-chm13
-    *****+ alignment + call peak 1311779
+    !!! alignment cannot map only in ashbi--> redownload the graph and try again, need to at least show that alignment is similar to my own graph
+    ***** 1312587
 - 146 map chm13
-    + alignment 41240820
+    *****+ alignment 41240820
 - 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
-    + convert graph 41241318
+    *****+ convert graph 41241318
 - Problem call peak with hprc-v1.1-mc-chm13
-    !!! Empty chromosome ranges found (how did GP found chr range though? while vg chunk could do it...)
+    !!! Empty chromosome ranges found 
+    chr range is from param, probably it cannot be found because not match vg path
+    ---------> DECISION: it was shown that alignment results was similar with my own graph. Can ignore this for now
 
 ## 12 Mar
 - Organize rrg-bourqueg-ad
@@ -357,7 +363,7 @@ To-dos:
         0 < MAPQ < 30: 3956277
         30 <= MAPQ < 60: 2921821
         MAPQ = 60: 95053869
-    *****+ call peak 41240706 >
+    !!! call peak 41240706 not succesful
 - K27_FLU giraffe chm13 
     + no alignment error log 41200369
     +   MAPQ = 0: 43038280
@@ -371,5 +377,5 @@ To-dos:
         0 < MAPQ < 30: 31770210
         30 <= MAPQ < 60: 43273367
         MAPQ = 60: 75524184
-    *****+ call peak 41240733 >
+    !!! call peak 41240733 not successful
 - It seems like either vg map always put read to either 0 or 60...
