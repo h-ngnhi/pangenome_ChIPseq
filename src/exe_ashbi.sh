@@ -16,15 +16,14 @@ set -x
 start_time=$(date +%s)
 
 # Set TMPDIR because the default /tmp is too small
-# export TMPDIR=/lustre07/scratch/hoangnhi/temp #make this input for the pipeline
 export TMPDIR=/tmp
 
 export wd=$(pwd)
 
 #######
 #1. Construct graphs
-variant_vcf=$wd/genome_data/L1_annotation.vcfbub.vcf.gz
-ref=$wd/genome_data/chm13v2.0.fa
+# variant_vcf=$wd/genome_data/L1_annotation.vcfbub.vcf.gz
+# ref=$wd/genome_data/chm13v2.0.fa
 ## Construct + index giraffe graph
 # vg_giraffe_graph "" $ref chm13
 # vg_giraffe_graph $variant_vcf $ref L1_vcfbub
@@ -52,32 +51,18 @@ reverse_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz"
 # chipseq_gp $markname $result_dir
 
 # Graphs
-# module load samtools
-# cd results/ipsc_K27_vg_map_L1_vcfbub_converted
-# samtools view treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
-# awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-# awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
-# awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
-# awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
 pipeline=vg_giraffe
-ref=chm13
+ref=chm13                       # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
 results_dir=$wd/results/${markname}_${pipeline}_${ref}
 # graph_dir=$wd/Pangenomes/$pipeline/$ref
-# vg giraffe -Z $graph_dir/$ref.gbz -m $graph_dir/$ref.min -d $graph_dir/$ref.dist -f $data_dir/p_N_iPSC_K27ac_r1_S5_R1_001.fastq.gz -f $data_dir/p_N_iPSC_K27ac_r1_S5_R2_001.fastq.gz -t 64 > treatment_alignments_1.gam
-# vg surject -x $graph_dir/$ref.gbz -b treatment_alignments_1.gam > treatment_alignments_1.bam
-# module load samtools
-# samtools view treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
-# awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-# awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
-# awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
-# awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
-
 # vg_map_convert L1_vcfbub
 # alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
-
 # alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
 
-split_graph $pipeline $ref $wd/tools/gp.sif
+# split_graph $pipeline $ref $wd/tools/gp.sif
+
+callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$ref" $pipeline "ashbi" $wd/tools/gp.sif
+
 
 
 #################
@@ -92,13 +77,8 @@ split_graph $pipeline $ref $wd/tools/gp.sif
 # json=$wd/results/ipsc_K27_vg_giraffe_chm13/treatment_alignments.filtered.json
 # echo $(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $json | sort | uniq | wc -l)
 
-graph_type=chm13
-pipeline=vg_giraffe
-fragment_length=151
-read_length=62
-unique_reads=73610238
-gp=$wd/tools/gp.sif
-callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$graph_type" $pipeline $fragment_length $read_length $unique_reads $gp
+
+# callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$graph_type" $pipeline $fragment_length $read_length $unique_reads $gp
 
 
 # # vg gamcompare  -T $wd/Graph_genome_chm13_trimmomatic/146_alignments.gam $wd/Graph_genome_vcfbub_trimmomatic/146_alignments.gam -t 64 > $wd/Graph_genome_data/146_alignments_compare.tsv
@@ -108,20 +88,6 @@ callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json
 # }' results/compare.tsv
 # vg gamcompare -T results/ipsc_K27_vg_giraffe_L1_vcfbub/treatment_alignments.gam results/ipsc_K27_vg_map_L1_vcfbub_converted/treatment_alignments.gam -t 64 > results/compare.tsv
 
-#-------------------
-# vg inject to inject the GenPipe alignments into the graph then call peaks
-# graph_type=L1_vcfbub
-# data_dir=$wd/cgroza_data/H3K27AC_FLU
-#
-# mkdir -p $results_dir
-# # samtools view -h cgroza_data/H3K27AC_FLU/H3K27AC_CHM13linear/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.bam | awk '$3 != "chrEBV" && $3 != "chrY" || $1 ~ /^@/' | samtools view -b -o $results_dir/genpipes_without_chrYEBV.bam
-# # vg inject -x $vg_index.gbz $results_dir/genpipes_without_chrY.bam > $results_dir/treatment_alignments_genpipes.gam
-# # vg view -aj $results_dir/treatment_alignments_genpipes.gam > $results_dir/treatment_alignments_genpipes.json
-fragment_length=212
-read_length=102
-unique_reads=112938149
-# split_graph $pipeline $graph_type
-# callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$ref" $pipeline $fragment_length $read_length $unique_reads
 
 end_time=$(date +%s)
 

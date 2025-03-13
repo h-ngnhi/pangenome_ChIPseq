@@ -9,9 +9,10 @@ To-dos:
 - 507 giraffe hprc-v1.1-mc-chm13
     + alignment 41240858
 - ashbi giraffe chm13
-
+    + alignment done
+    *****+ call peak 1311787
 - ashbi giraffe hprc-v1.1-mc-chm13
-
+    *****+ alignment + call peak 1311779
 - 146 map chm13
     + alignment 41240820
 - 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
@@ -354,7 +355,7 @@ To-dos:
         0 < MAPQ < 30: 3956277
         30 <= MAPQ < 60: 2921821
         MAPQ = 60: 95053869
-    *****+ call peak 41240706
+    *****+ call peak 41240706 >
 - K27_FLU giraffe chm13 
     + no alignment error log 41200369
     +   MAPQ = 0: 43038280

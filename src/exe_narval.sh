@@ -23,41 +23,41 @@ export wd=$(pwd)
 
 # Construct graphs
 # Done... Will add more code if needed
-vg_map_convert hprc-v1.1-mc-chm13
+# vg_map_convert hprc-v1.1-mc-chm13
 
-# markname=507
-# pipeline=vg_giraffe         # vg_giraffe or vg_map
-# ref=chm13                    # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
-# results_dir=$wd/results/${markname}/${pipeline}_${ref}
+markname=507
+pipeline=vg_giraffe         # vg_giraffe or vg_map
+ref=chm13                    # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
+results_dir=$wd/results/${markname}/${pipeline}_${ref}
 
-# input() {
-#     local markname=$1
-#     if [ $markname == "K27_FLU" ]; then
-#         data_dir=$wd/cgroza_data/H3K27AC_FLU
-#         forward_trm="$data_dir/treatment/H3K27AC.forward_treatment_1.fastq.gz"
-#         reverse_trm="$data_dir/treatment/H3K27AC.reverse_treatment_1.fastq.gz"
-#         forward_ctl=""
-#         reverse_ctl=""
-#     elif [[ $markname == "146" || $markname == "507" ]]; then
-#         data_dir=$wd/results/$markname/${markname}_linear_t2t/trim/$markname/ZNF$markname
-#         forward_trm="$data_dir/${markname}Rep1.trim.pair1.fastq.gz $data_dir/${markname}Rep2.trim.pair1.fastq.gz"
-#         reverse_trm="$data_dir/${markname}Rep1.trim.pair2.fastq.gz $data_dir/${markname}Rep2.trim.pair2.fastq.gz"
-#         forward_ctl="$data_dir/${markname}Input.trim.pair1.fastq.gz"
-#         reverse_ctl="$data_dir/${markname}Input.trim.pair2.fastq.gz"
-#     fi
-# }
+input() {
+    local markname=$1
+    if [ $markname == "K27_FLU" ]; then
+        data_dir=$wd/cgroza_data/H3K27AC_FLU
+        forward_trm="$data_dir/treatment/H3K27AC.forward_treatment_1.fastq.gz"
+        reverse_trm="$data_dir/treatment/H3K27AC.reverse_treatment_1.fastq.gz"
+        forward_ctl=""
+        reverse_ctl=""
+    elif [[ $markname == "146" || $markname == "507" ]]; then
+        data_dir=$wd/results/$markname/linear_chm13/trim/$markname/ZNF$markname
+        forward_trm="$data_dir/${markname}Rep1.trim.pair1.fastq.gz $data_dir/${markname}Rep2.trim.pair1.fastq.gz"
+        reverse_trm="$data_dir/${markname}Rep1.trim.pair2.fastq.gz $data_dir/${markname}Rep2.trim.pair2.fastq.gz"
+        forward_ctl="$data_dir/${markname}Input.trim.pair1.fastq.gz"
+        reverse_ctl="$data_dir/${markname}Input.trim.pair2.fastq.gz"
+    fi
+}
 
-# input $markname
+input $markname
 
-# # Alignment
-# alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
-# if [ -n "$forward_ctl" ]; then
-#     alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
-# fi
+# Alignment
+alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
+if [ -n "$forward_ctl" ]; then
+    alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
+fi
 
-# #################
-# # Peak calling
-# callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$ref" $pipeline "narval" $wd/tools/gp.sif
+#################
+# Peak calling
+callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "${results_dir#$wd/}" "$ref" $pipeline "narval" $wd/tools/gp.sif
 
 
 end_time=$(date +%s)
