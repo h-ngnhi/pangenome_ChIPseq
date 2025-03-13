@@ -1,0 +1,372 @@
+To-dos:
+1. Put together and clearly learn + explain difference vg map + giraffe
+2. Organize space, rerun everything with the lastest code
+3. Install GenPipes for Saitou's data
+
+## 13 Mar
+- 507 giraffe chm13
+    + alignment 41240863
+- 507 giraffe hprc-v1.1-mc-chm13
+    + alignment 41240858
+- ashbi giraffe chm13
+
+- ashbi giraffe hprc-v1.1-mc-chm13
+
+- 146 map chm13
+    + alignment 41240820
+- 146 map hprc-v1.1-mc-chm13
+    + alignment 41240856
+
+## 12 Mar
+- Organize rrg-bourqueg-ad
+- Rerun 146, 507, K27 influenza
+- 146 giraffe chm13 
+    + no alignment error log 41194221
+    + alignment similar to previous results
+        MAPQ = 0: 5429961
+        0 < MAPQ < 30: 3628033
+        30 <= MAPQ < 60: 3204182
+        MAPQ = 60: 96921020
+    *****+ call peak 41240681
+- 146 giraffe vcfbub 
+    + alignment warnings 41194263
+        vg giraffe -Z /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz -m /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.min -d /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.dist -f /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Graph_genome_data/146Rep2.trim.pair1.fastq.gz -f /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Graph_genome_data/146Rep2.trim.pair2.fastq.gz -t 64
+        warning[vg::giraffe]: Refusing to perform too-large rescue alignment of 101 bp against 23890 bp ordered subgraph for read D93Z3NS1:275:C8C8MACXX:3:1101:6575:2621 which would use more than 1572864 cells and might exhaust Dozeu's allocator; suppressing further warnings.
+        warning[vg::Watchdog]: Thread 18 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1101:18834:58057, D93Z3NS1:275:C8C8MACXX:3:1101:18834:58057
+        warning[vg::Watchdog]: Thread 18 finally checked out after 10 seconds and 2295956 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1101:18834:58057, D93Z3NS1:275:C8C8MACXX:3:1101:18834:58057
+        warning[vg::Watchdog]: Thread 57 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1103:8521:28950, D93Z3NS1:275:C8C8MACXX:3:1103:8521:28950
+        warning[vg::Watchdog]: Thread 57 finally checked out after 11 seconds and 382140 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1103:8521:28950, D93Z3NS1:275:C8C8MACXX:3:1103:8521:28950
+        warning[vg::Watchdog]: Thread 20 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1105:19565:48530, D93Z3NS1:275:C8C8MACXX:3:1105:19565:48530
+        warning[vg::Watchdog]: Thread 20 finally checked out after 10 seconds and 1047664 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1105:19565:48530, D93Z3NS1:275:C8C8MACXX:3:1105:19565:48530
+        warning[vg::Watchdog]: Thread 59 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1106:9314:74631, D93Z3NS1:275:C8C8MACXX:3:1106:9314:74631
+        warning[vg::Watchdog]: Thread 59 finally checked out after 10 seconds and 1047664 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1106:9314:74631, D93Z3NS1:275:C8C8MACXX:3:1106:9314:74631
+        warning[vg::Watchdog]: Thread 58 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1107:8015:17617, D93Z3NS1:275:C8C8MACXX:3:1107:8015:17617
+        warning[vg::Watchdog]: Thread 58 finally checked out after 12 seconds and 493584 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1107:8015:17617, D93Z3NS1:275:C8C8MACXX:3:1107:8015:17617
+        warning[vg::Watchdog]: Thread 5 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1107:5084:74599, D93Z3NS1:275:C8C8MACXX:3:1107:5084:74599
+        warning[vg::Watchdog]: Thread 47 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1109:19114:2077, D93Z3NS1:275:C8C8MACXX:3:1109:19114:2077
+        warning[vg::Watchdog]: Thread 47 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1109:19114:2077, D93Z3NS1:275:C8C8MACXX:3:1109:19114:2077
+        warning[vg::Watchdog]: Thread 60 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1109:19711:57336, D93Z3NS1:275:C8C8MACXX:3:1109:19711:57336
+        warning[vg::Watchdog]: Thread 60 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1109:19711:57336, D93Z3NS1:275:C8C8MACXX:3:1109:19711:57336
+        warning[vg::Watchdog]: Thread 5 finally checked out after 20 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1107:5084:74599, D93Z3NS1:275:C8C8MACXX:3:1107:5084:74599
+        warning[vg::Watchdog]: Thread 9 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1109:5259:67583, D93Z3NS1:275:C8C8MACXX:3:1109:5259:67583
+        warning[vg::Watchdog]: Thread 9 finally checked out after 14 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1109:5259:67583, D93Z3NS1:275:C8C8MACXX:3:1109:5259:67583
+        warning[vg::Watchdog]: Thread 38 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1110:8163:37613, D93Z3NS1:275:C8C8MACXX:3:1110:8163:37613
+        warning[vg::Watchdog]: Thread 38 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1110:8163:37613, D93Z3NS1:275:C8C8MACXX:3:1110:8163:37613
+        warning[vg::Watchdog]: Thread 6 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1113:15952:42254, D93Z3NS1:275:C8C8MACXX:3:1113:15952:42254
+        warning[vg::Watchdog]: Thread 11 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1113:11647:63648, D93Z3NS1:275:C8C8MACXX:3:1113:11647:63648
+        warning[vg::Watchdog]: Thread 43 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1113:11044:69721, D93Z3NS1:275:C8C8MACXX:3:1113:11044:69721
+        warning[vg::Watchdog]: Thread 6 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1113:15952:42254, D93Z3NS1:275:C8C8MACXX:3:1113:15952:42254
+        warning[vg::Watchdog]: Thread 49 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1113:7692:86305, D93Z3NS1:275:C8C8MACXX:3:1113:7692:86305
+        warning[vg::Watchdog]: Thread 11 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1113:11647:63648, D93Z3NS1:275:C8C8MACXX:3:1113:11647:63648
+        warning[vg::Watchdog]: Thread 43 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1113:11044:69721, D93Z3NS1:275:C8C8MACXX:3:1113:11044:69721
+        warning[vg::Watchdog]: Thread 44 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1114:6087:25069, D93Z3NS1:275:C8C8MACXX:3:1114:6087:25069
+        warning[vg::Watchdog]: Thread 49 finally checked out after 14 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1113:7692:86305, D93Z3NS1:275:C8C8MACXX:3:1113:7692:86305
+        warning[vg::Watchdog]: Thread 44 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1114:6087:25069, D93Z3NS1:275:C8C8MACXX:3:1114:6087:25069
+        warning[vg::Watchdog]: Thread 33 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1115:20131:29070, D93Z3NS1:275:C8C8MACXX:3:1115:20131:29070
+        warning[vg::Watchdog]: Thread 14 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1115:12897:44278, D93Z3NS1:275:C8C8MACXX:3:1115:12897:44278
+        warning[vg::Watchdog]: Thread 14 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1115:12897:44278, D93Z3NS1:275:C8C8MACXX:3:1115:12897:44278
+        warning[vg::Watchdog]: Thread 60 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1115:3946:77123, D93Z3NS1:275:C8C8MACXX:3:1115:3946:77123
+        warning[vg::Watchdog]: Thread 60 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1115:3946:77123, D93Z3NS1:275:C8C8MACXX:3:1115:3946:77123
+        warning[vg::Watchdog]: Thread 33 finally checked out after 19 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1115:20131:29070, D93Z3NS1:275:C8C8MACXX:3:1115:20131:29070
+        warning[vg::Watchdog]: Thread 30 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1201:9374:5460, D93Z3NS1:275:C8C8MACXX:3:1201:9374:5460
+        warning[vg::Watchdog]: Thread 30 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1201:9374:5460, D93Z3NS1:275:C8C8MACXX:3:1201:9374:5460
+        warning[vg::Watchdog]: Thread 63 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1203:8897:74658, D93Z3NS1:275:C8C8MACXX:3:1203:8897:74658
+        warning[vg::Watchdog]: Thread 27 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1204:13036:53847, D93Z3NS1:275:C8C8MACXX:3:1204:13036:53847
+        warning[vg::Watchdog]: Thread 27 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1204:13036:53847, D93Z3NS1:275:C8C8MACXX:3:1204:13036:53847
+        warning[vg::Watchdog]: Thread 63 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1203:8897:74658, D93Z3NS1:275:C8C8MACXX:3:1203:8897:74658
+        warning[vg::Watchdog]: Thread 1 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1205:16755:96176, D93Z3NS1:275:C8C8MACXX:3:1205:16755:96176
+        warning[vg::Watchdog]: Thread 1 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1205:16755:96176, D93Z3NS1:275:C8C8MACXX:3:1205:16755:96176
+        warning[vg::Watchdog]: Thread 44 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1209:8393:17741, D93Z3NS1:275:C8C8MACXX:3:1209:8393:17741
+        warning[vg::Watchdog]: Thread 44 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1209:8393:17741, D93Z3NS1:275:C8C8MACXX:3:1209:8393:17741
+        warning[vg::Watchdog]: Thread 43 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1210:4658:79190, D93Z3NS1:275:C8C8MACXX:3:1210:4658:79190
+        warning[vg::Watchdog]: Thread 43 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1210:4658:79190, D93Z3NS1:275:C8C8MACXX:3:1210:4658:79190
+        warning[vg::Watchdog]: Thread 14 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1211:5860:64192, D93Z3NS1:275:C8C8MACXX:3:1211:5860:64192
+        warning[vg::Watchdog]: Thread 14 finally checked out after 10 seconds and 433912 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1211:5860:64192, D93Z3NS1:275:C8C8MACXX:3:1211:5860:64192
+        warning[vg::Watchdog]: Thread 39 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1211:11101:88572, D93Z3NS1:275:C8C8MACXX:3:1211:11101:88572
+        warning[vg::Watchdog]: Thread 39 finally checked out after 12 seconds and 1057188 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1211:11101:88572, D93Z3NS1:275:C8C8MACXX:3:1211:11101:88572
+        warning[vg::Watchdog]: Thread 45 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1212:18494:68232, D93Z3NS1:275:C8C8MACXX:3:1212:18494:68232
+        warning[vg::Watchdog]: Thread 45 finally checked out after 11 seconds and 1102112 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1212:18494:68232, D93Z3NS1:275:C8C8MACXX:3:1212:18494:68232
+        warning[vg::Watchdog]: Thread 21 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1213:15061:32118, D93Z3NS1:275:C8C8MACXX:3:1213:15061:32118
+        warning[vg::Watchdog]: Thread 21 finally checked out after 10 seconds and 1125640 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1213:15061:32118, D93Z3NS1:275:C8C8MACXX:3:1213:15061:32118
+        warning[vg::Watchdog]: Thread 5 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1214:4901:4914, D93Z3NS1:275:C8C8MACXX:3:1214:4901:4914
+        warning[vg::Watchdog]: Thread 5 finally checked out after 12 seconds and 117516 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1214:4901:4914, D93Z3NS1:275:C8C8MACXX:3:1214:4901:4914
+        warning[vg::Watchdog]: Thread 1 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1214:20179:50832, D93Z3NS1:275:C8C8MACXX:3:1214:20179:50832
+        warning[vg::Watchdog]: Thread 1 finally checked out after 11 seconds and 65116 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1214:20179:50832, D93Z3NS1:275:C8C8MACXX:3:1214:20179:50832
+        warning[vg::Watchdog]: Thread 55 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1215:14066:11231, D93Z3NS1:275:C8C8MACXX:3:1215:14066:11231
+        warning[vg::Watchdog]: Thread 55 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1215:14066:11231, D93Z3NS1:275:C8C8MACXX:3:1215:14066:11231
+        warning[vg::Watchdog]: Thread 56 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1215:11869:39043, D93Z3NS1:275:C8C8MACXX:3:1215:11869:39043
+        warning[vg::Watchdog]: Thread 56 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1215:11869:39043, D93Z3NS1:275:C8C8MACXX:3:1215:11869:39043
+        warning[vg::Watchdog]: Thread 26 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1215:6549:60327, D93Z3NS1:275:C8C8MACXX:3:1215:6549:60327
+        warning[vg::Watchdog]: Thread 26 finally checked out after 11 seconds and 29972 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1215:6549:60327, D93Z3NS1:275:C8C8MACXX:3:1215:6549:60327
+        warning[vg::Watchdog]: Thread 24 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1216:1573:61150, D93Z3NS1:275:C8C8MACXX:3:1216:1573:61150
+        warning[vg::Watchdog]: Thread 21 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1216:8178:68207, D93Z3NS1:275:C8C8MACXX:3:1216:8178:68207
+        warning[vg::Watchdog]: Thread 24 finally checked out after 12 seconds and 29972 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1216:1573:61150, D93Z3NS1:275:C8C8MACXX:3:1216:1573:61150
+        warning[vg::Watchdog]: Thread 21 finally checked out after 13 seconds and 29972 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1216:8178:68207, D93Z3NS1:275:C8C8MACXX:3:1216:8178:68207
+        warning[vg::Watchdog]: Thread 50 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1302:14895:20385, D93Z3NS1:275:C8C8MACXX:3:1302:14895:20385
+        warning[vg::Watchdog]: Thread 50 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1302:14895:20385, D93Z3NS1:275:C8C8MACXX:3:1302:14895:20385
+        warning[vg::Watchdog]: Thread 4 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1304:18695:15810, D93Z3NS1:275:C8C8MACXX:3:1304:18695:15810
+        warning[vg::Watchdog]: Thread 4 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1304:18695:15810, D93Z3NS1:275:C8C8MACXX:3:1304:18695:15810
+        warning[vg::Watchdog]: Thread 38 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1305:19389:70437, D93Z3NS1:275:C8C8MACXX:3:1305:19389:70437
+        warning[vg::Watchdog]: Thread 38 finally checked out after 16 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1305:19389:70437, D93Z3NS1:275:C8C8MACXX:3:1305:19389:70437
+        warning[vg::Watchdog]: Thread 63 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1308:6258:19549, D93Z3NS1:275:C8C8MACXX:3:1308:6258:19549
+        warning[vg::Watchdog]: Thread 63 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1308:6258:19549, D93Z3NS1:275:C8C8MACXX:3:1308:6258:19549
+        warning[vg::Watchdog]: Thread 32 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1308:3810:28966, D93Z3NS1:275:C8C8MACXX:3:1308:3810:28966
+        warning[vg::Watchdog]: Thread 32 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1308:3810:28966, D93Z3NS1:275:C8C8MACXX:3:1308:3810:28966
+        warning[vg::Watchdog]: Thread 31 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1308:21044:87420, D93Z3NS1:275:C8C8MACXX:3:1308:21044:87420
+        warning[vg::Watchdog]: Thread 31 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1308:21044:87420, D93Z3NS1:275:C8C8MACXX:3:1308:21044:87420
+        warning[vg::Watchdog]: Thread 48 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1309:6109:96635, D93Z3NS1:275:C8C8MACXX:3:1309:6109:96635
+        warning[vg::Watchdog]: Thread 48 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1309:6109:96635, D93Z3NS1:275:C8C8MACXX:3:1309:6109:96635
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1311:5331:52678, D93Z3NS1:275:C8C8MACXX:3:1311:5331:52678
+        warning[vg::Watchdog]: Thread 40 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1312:5205:83551, D93Z3NS1:275:C8C8MACXX:3:1312:5205:83551
+        warning[vg::Watchdog]: Thread 25 finally checked out after 17 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1311:5331:52678, D93Z3NS1:275:C8C8MACXX:3:1311:5331:52678
+        warning[vg::Watchdog]: Thread 3 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1313:5252:22106, D93Z3NS1:275:C8C8MACXX:3:1313:5252:22106
+        warning[vg::Watchdog]: Thread 35 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1313:17447:82439, D93Z3NS1:275:C8C8MACXX:3:1313:17447:82439
+        warning[vg::Watchdog]: Thread 35 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1313:17447:82439, D93Z3NS1:275:C8C8MACXX:3:1313:17447:82439
+        warning[vg::Watchdog]: Thread 3 finally checked out after 14 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1313:5252:22106, D93Z3NS1:275:C8C8MACXX:3:1313:5252:22106
+        warning[vg::Watchdog]: Thread 40 finally checked out after 20 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1312:5205:83551, D93Z3NS1:275:C8C8MACXX:3:1312:5205:83551
+        warning[vg::Watchdog]: Thread 50 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1315:6175:62069, D93Z3NS1:275:C8C8MACXX:3:1315:6175:62069
+        warning[vg::Watchdog]: Thread 50 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1315:6175:62069, D93Z3NS1:275:C8C8MACXX:3:1315:6175:62069
+        warning[vg::Watchdog]: Thread 39 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1315:3007:85978, D93Z3NS1:275:C8C8MACXX:3:1315:3007:85978
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:1316:9949:14306, D93Z3NS1:275:C8C8MACXX:3:1316:9949:14306
+        warning[vg::Watchdog]: Thread 25 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1316:9949:14306, D93Z3NS1:275:C8C8MACXX:3:1316:9949:14306
+        warning[vg::Watchdog]: Thread 39 finally checked out after 16 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:1315:3007:85978, D93Z3NS1:275:C8C8MACXX:3:1315:3007:85978
+        warning[vg::Watchdog]: Thread 28 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2103:5078:46524, D93Z3NS1:275:C8C8MACXX:3:2103:5078:46524
+        warning[vg::Watchdog]: Thread 6 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2103:13954:72550, D93Z3NS1:275:C8C8MACXX:3:2103:13954:72550
+        warning[vg::Watchdog]: Thread 57 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2103:3206:50075, D93Z3NS1:275:C8C8MACXX:3:2103:3206:50075
+        warning[vg::Watchdog]: Thread 6 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2103:13954:72550, D93Z3NS1:275:C8C8MACXX:3:2103:13954:72550
+        warning[vg::Watchdog]: Thread 28 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2103:5078:46524, D93Z3NS1:275:C8C8MACXX:3:2103:5078:46524
+        warning[vg::Watchdog]: Thread 57 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2103:3206:50075, D93Z3NS1:275:C8C8MACXX:3:2103:3206:50075
+        warning[vg::Watchdog]: Thread 12 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2105:4089:99010, D93Z3NS1:275:C8C8MACXX:3:2105:4089:99010
+        warning[vg::Watchdog]: Thread 12 finally checked out after 14 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2105:4089:99010, D93Z3NS1:275:C8C8MACXX:3:2105:4089:99010
+        warning[vg::Watchdog]: Thread 17 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2109:16121:99380, D93Z3NS1:275:C8C8MACXX:3:2109:16121:99380
+        warning[vg::Watchdog]: Thread 12 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2110:16096:20495, D93Z3NS1:275:C8C8MACXX:3:2110:16096:20495
+        warning[vg::Watchdog]: Thread 17 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2109:16121:99380, D93Z3NS1:275:C8C8MACXX:3:2109:16121:99380
+        warning[vg::Watchdog]: Thread 12 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2110:16096:20495, D93Z3NS1:275:C8C8MACXX:3:2110:16096:20495
+        warning[vg::Watchdog]: Thread 23 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2110:3713:73195, D93Z3NS1:275:C8C8MACXX:3:2110:3713:73195
+        warning[vg::Watchdog]: Thread 20 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2110:11394:93435, D93Z3NS1:275:C8C8MACXX:3:2110:11394:93435
+        warning[vg::Watchdog]: Thread 58 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2110:20611:80397, D93Z3NS1:275:C8C8MACXX:3:2110:20611:80397
+        warning[vg::Watchdog]: Thread 20 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2110:11394:93435, D93Z3NS1:275:C8C8MACXX:3:2110:11394:93435
+        warning[vg::Watchdog]: Thread 23 finally checked out after 18 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2110:3713:73195, D93Z3NS1:275:C8C8MACXX:3:2110:3713:73195
+        warning[vg::Watchdog]: Thread 58 finally checked out after 18 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2110:20611:80397, D93Z3NS1:275:C8C8MACXX:3:2110:20611:80397
+        warning[vg::Watchdog]: Thread 2 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2203:15873:22111, D93Z3NS1:275:C8C8MACXX:3:2203:15873:22111
+        warning[vg::Watchdog]: Thread 2 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2203:15873:22111, D93Z3NS1:275:C8C8MACXX:3:2203:15873:22111
+        warning[vg::Watchdog]: Thread 48 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2114:4309:55259, D93Z3NS1:275:C8C8MACXX:3:2114:4309:55259
+        warning[vg::Watchdog]: Thread 48 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2114:4309:55259, D93Z3NS1:275:C8C8MACXX:3:2114:4309:55259
+        warning[vg::Watchdog]: Thread 52 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2202:7375:81566, D93Z3NS1:275:C8C8MACXX:3:2202:7375:81566
+        warning[vg::Watchdog]: Thread 52 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2202:7375:81566, D93Z3NS1:275:C8C8MACXX:3:2202:7375:81566
+        warning[vg::Watchdog]: Thread 55 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2203:7396:26476, D93Z3NS1:275:C8C8MACXX:3:2203:7396:26476
+        warning[vg::Watchdog]: Thread 55 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2203:7396:26476, D93Z3NS1:275:C8C8MACXX:3:2203:7396:26476
+        warning[vg::Watchdog]: Thread 2 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2210:20942:86406, D93Z3NS1:275:C8C8MACXX:3:2210:20942:86406
+        warning[vg::Watchdog]: Thread 2 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2210:20942:86406, D93Z3NS1:275:C8C8MACXX:3:2210:20942:86406
+        warning[vg::Watchdog]: Thread 51 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2206:8890:78422, D93Z3NS1:275:C8C8MACXX:3:2206:8890:78422
+        warning[vg::Watchdog]: Thread 51 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2206:8890:78422, D93Z3NS1:275:C8C8MACXX:3:2206:8890:78422
+        warning[vg::Watchdog]: Thread 15 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2210:3564:80535, D93Z3NS1:275:C8C8MACXX:3:2210:3564:80535
+        warning[vg::Watchdog]: Thread 15 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2210:3564:80535, D93Z3NS1:275:C8C8MACXX:3:2210:3564:80535
+        warning[vg::Watchdog]: Thread 5 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2211:12291:65038, D93Z3NS1:275:C8C8MACXX:3:2211:12291:65038
+        warning[vg::Watchdog]: Thread 5 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2211:12291:65038, D93Z3NS1:275:C8C8MACXX:3:2211:12291:65038
+        warning[vg::Watchdog]: Thread 10 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2213:18088:59200, D93Z3NS1:275:C8C8MACXX:3:2213:18088:59200
+        warning[vg::Watchdog]: Thread 10 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2213:18088:59200, D93Z3NS1:275:C8C8MACXX:3:2213:18088:59200
+        warning[vg::Watchdog]: Thread 44 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2214:12617:20580, D93Z3NS1:275:C8C8MACXX:3:2214:12617:20580
+        warning[vg::Watchdog]: Thread 44 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2214:12617:20580, D93Z3NS1:275:C8C8MACXX:3:2214:12617:20580
+        warning[vg::Watchdog]: Thread 61 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2215:3512:53901, D93Z3NS1:275:C8C8MACXX:3:2215:3512:53901
+        warning[vg::Watchdog]: Thread 61 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2215:3512:53901, D93Z3NS1:275:C8C8MACXX:3:2215:3512:53901
+        warning[vg::Watchdog]: Thread 37 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2301:14622:42683, D93Z3NS1:275:C8C8MACXX:3:2301:14622:42683
+        warning[vg::Watchdog]: Thread 37 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2301:14622:42683, D93Z3NS1:275:C8C8MACXX:3:2301:14622:42683
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2301:16713:89394, D93Z3NS1:275:C8C8MACXX:3:2301:16713:89394
+        warning[vg::Watchdog]: Thread 25 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2301:16713:89394, D93Z3NS1:275:C8C8MACXX:3:2301:16713:89394
+        warning[vg::Watchdog]: Thread 59 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2303:17857:4067, D93Z3NS1:275:C8C8MACXX:3:2303:17857:4067
+        warning[vg::Watchdog]: Thread 33 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2303:15110:70663, D93Z3NS1:275:C8C8MACXX:3:2303:15110:70663
+        warning[vg::Watchdog]: Thread 41 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2303:19519:80173, D93Z3NS1:275:C8C8MACXX:3:2303:19519:80173
+        warning[vg::Watchdog]: Thread 59 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2303:17857:4067, D93Z3NS1:275:C8C8MACXX:3:2303:17857:4067
+        warning[vg::Watchdog]: Thread 41 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2303:19519:80173, D93Z3NS1:275:C8C8MACXX:3:2303:19519:80173
+        warning[vg::Watchdog]: Thread 33 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2303:15110:70663, D93Z3NS1:275:C8C8MACXX:3:2303:15110:70663
+        warning[vg::Watchdog]: Thread 13 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2305:5030:39219, D93Z3NS1:275:C8C8MACXX:3:2305:5030:39219
+        warning[vg::Watchdog]: Thread 13 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2305:5030:39219, D93Z3NS1:275:C8C8MACXX:3:2305:5030:39219
+        warning[vg::Watchdog]: Thread 59 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2307:12542:91691, D93Z3NS1:275:C8C8MACXX:3:2307:12542:91691
+        warning[vg::Watchdog]: Thread 59 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2307:12542:91691, D93Z3NS1:275:C8C8MACXX:3:2307:12542:91691
+        warning[vg::Watchdog]: Thread 41 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2309:20652:8180, D93Z3NS1:275:C8C8MACXX:3:2309:20652:8180
+        warning[vg::Watchdog]: Thread 41 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2309:20652:8180, D93Z3NS1:275:C8C8MACXX:3:2309:20652:8180
+        warning[vg::Watchdog]: Thread 15 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2312:5399:20303, D93Z3NS1:275:C8C8MACXX:3:2312:5399:20303
+        warning[vg::Watchdog]: Thread 5 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2312:13344:69654, D93Z3NS1:275:C8C8MACXX:3:2312:13344:69654
+        warning[vg::Watchdog]: Thread 15 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2312:5399:20303, D93Z3NS1:275:C8C8MACXX:3:2312:5399:20303
+        warning[vg::Watchdog]: Thread 5 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2312:13344:69654, D93Z3NS1:275:C8C8MACXX:3:2312:13344:69654
+        warning[vg::Watchdog]: Thread 48 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2314:6469:3017, D93Z3NS1:275:C8C8MACXX:3:2314:6469:3017
+        warning[vg::Watchdog]: Thread 28 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2314:2281:41633, D93Z3NS1:275:C8C8MACXX:3:2314:2281:41633
+        warning[vg::Watchdog]: Thread 48 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2314:6469:3017, D93Z3NS1:275:C8C8MACXX:3:2314:6469:3017
+        warning[vg::Watchdog]: Thread 28 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2314:2281:41633, D93Z3NS1:275:C8C8MACXX:3:2314:2281:41633
+        warning[vg::Watchdog]: Thread 7 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2314:19622:58327, D93Z3NS1:275:C8C8MACXX:3:2314:19622:58327
+        warning[vg::Watchdog]: Thread 56 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2314:3359:74257, D93Z3NS1:275:C8C8MACXX:3:2314:3359:74257
+        warning[vg::Watchdog]: Thread 56 finally checked out after 10 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2314:3359:74257, D93Z3NS1:275:C8C8MACXX:3:2314:3359:74257
+        warning[vg::Watchdog]: Thread 7 finally checked out after 11 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2314:19622:58327, D93Z3NS1:275:C8C8MACXX:3:2314:19622:58327
+        warning[vg::Watchdog]: Thread 13 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2314:9242:79053, D93Z3NS1:275:C8C8MACXX:3:2314:9242:79053
+        warning[vg::Watchdog]: Thread 13 finally checked out after 12 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2314:9242:79053, D93Z3NS1:275:C8C8MACXX:3:2314:9242:79053
+        warning[vg::Watchdog]: Thread 53 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2315:5111:71063, D93Z3NS1:275:C8C8MACXX:3:2315:5111:71063
+        warning[vg::Watchdog]: Thread 1 has been checked in for 10 seconds processing: D93Z3NS1:275:C8C8MACXX:3:2315:7373:75794, D93Z3NS1:275:C8C8MACXX:3:2315:7373:75794
+        warning[vg::Watchdog]: Thread 1 finally checked out after 13 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2315:7373:75794, D93Z3NS1:275:C8C8MACXX:3:2315:7373:75794
+        warning[vg::Watchdog]: Thread 53 finally checked out after 19 seconds and 0 kb memory growth processing: D93Z3NS1:275:C8C8MACXX:3:2315:5111:71063, D93Z3NS1:275:C8C8MACXX:3:2315:5111:71063
+    + alignment similar to previous results
+        MAPQ = 0: 7009863
+        0 < MAPQ < 30: 3989172
+        30 <= MAPQ < 60: 2929413
+        MAPQ = 60: 95254748
+    *****+ call peak 41240684
+- 146 giraffe hprc-v1.1-mc-chm13 
+    + alignment warnings 41199786  
+        vg giraffe -Z /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.gbz -m /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.min -d /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.dist -f /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Graph_genome_data/146Rep1.trim.pair1.fastq.gz -f /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Graph_genome_data/146Rep1.trim.pair2.fastq.gz -t 64
+        warning[vg::giraffe]: Refusing to perform too-large rescue alignment of 101 bp against 15932 bp ordered subgraph for read HWI-ST689:299:C69M9ACXX:1:1101:14369:31205 which would use more than 1572864 cells and might exhaust Dozeu's allocator; suppressing further warnings.
+        warning[vg::Watchdog]: Thread 15 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1101:11642:53363, HWI-ST689:299:C69M9ACXX:1:1101:11642:53363
+        warning[vg::Watchdog]: Thread 15 finally checked out after 10 seconds and 1109512 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1101:11642:53363, HWI-ST689:299:C69M9ACXX:1:1101:11642:53363
+        warning[vg::Watchdog]: Thread 45 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1101:10449:72026, HWI-ST689:299:C69M9ACXX:1:1101:10449:72026
+        warning[vg::Watchdog]: Thread 45 finally checked out after 12 seconds and 1148372 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1101:10449:72026, HWI-ST689:299:C69M9ACXX:1:1101:10449:72026
+        warning[vg::Watchdog]: Thread 14 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1104:2635:77821, HWI-ST689:299:C69M9ACXX:1:1104:2635:77821
+        warning[vg::Watchdog]: Thread 14 finally checked out after 12 seconds and 471284 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1104:2635:77821, HWI-ST689:299:C69M9ACXX:1:1104:2635:77821
+        warning[vg::Watchdog]: Thread 26 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1105:8977:28413, HWI-ST689:299:C69M9ACXX:1:1105:8977:28413
+        warning[vg::Watchdog]: Thread 29 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1105:4515:44010, HWI-ST689:299:C69M9ACXX:1:1105:4515:44010
+        warning[vg::Watchdog]: Thread 29 finally checked out after 11 seconds and 393060 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1105:4515:44010, HWI-ST689:299:C69M9ACXX:1:1105:4515:44010
+        warning[vg::Watchdog]: Thread 26 finally checked out after 12 seconds and 793360 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1105:8977:28413, HWI-ST689:299:C69M9ACXX:1:1105:8977:28413
+        warning[vg::Watchdog]: Thread 62 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1107:2377:5177, HWI-ST689:299:C69M9ACXX:1:1107:2377:5177
+        warning[vg::Watchdog]: Thread 62 finally checked out after 11 seconds and 598280 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1107:2377:5177, HWI-ST689:299:C69M9ACXX:1:1107:2377:5177
+        warning[vg::Watchdog]: Thread 17 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1108:16277:66304, HWI-ST689:299:C69M9ACXX:1:1108:16277:66304
+        warning[vg::Watchdog]: Thread 17 finally checked out after 12 seconds and 85956 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1108:16277:66304, HWI-ST689:299:C69M9ACXX:1:1108:16277:66304
+        warning[vg::Watchdog]: Thread 40 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1110:1273:67766, HWI-ST689:299:C69M9ACXX:1:1110:1273:67766
+        warning[vg::Watchdog]: Thread 40 finally checked out after 11 seconds and 365708 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1110:1273:67766, HWI-ST689:299:C69M9ACXX:1:1110:1273:67766
+        warning[vg::Watchdog]: Thread 15 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1112:4790:53291, HWI-ST689:299:C69M9ACXX:1:1112:4790:53291
+        warning[vg::Watchdog]: Thread 15 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1112:4790:53291, HWI-ST689:299:C69M9ACXX:1:1112:4790:53291
+        warning[vg::Watchdog]: Thread 39 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1112:9860:90232, HWI-ST689:299:C69M9ACXX:1:1112:9860:90232
+        warning[vg::Watchdog]: Thread 39 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1112:9860:90232, HWI-ST689:299:C69M9ACXX:1:1112:9860:90232
+        warning[vg::Watchdog]: Thread 49 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1113:4580:54299, HWI-ST689:299:C69M9ACXX:1:1113:4580:54299
+        warning[vg::Watchdog]: Thread 49 finally checked out after 14 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1113:4580:54299, HWI-ST689:299:C69M9ACXX:1:1113:4580:54299
+        warning[vg::giraffe]: Refusing to perform too-large tail alignment of 58 bp against 29361 bp tree which would use more than 1572864 cells and might exhaust Dozeu's allocator; suppressing further warnings.
+        warning[vg::Watchdog]: Thread 27 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1116:15844:10925, HWI-ST689:299:C69M9ACXX:1:1116:15844:10925
+        warning[vg::Watchdog]: Thread 27 finally checked out after 12 seconds and 1728408 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1116:15844:10925, HWI-ST689:299:C69M9ACXX:1:1116:15844:10925
+        warning[vg::Watchdog]: Thread 18 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1116:15030:33631, HWI-ST689:299:C69M9ACXX:1:1116:15030:33631
+        warning[vg::Watchdog]: Thread 18 finally checked out after 11 seconds and 1798672 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1116:15030:33631, HWI-ST689:299:C69M9ACXX:1:1116:15030:33631
+        warning[vg::Watchdog]: Thread 35 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1201:20221:47773, HWI-ST689:299:C69M9ACXX:1:1201:20221:47773
+        warning[vg::Watchdog]: Thread 26 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1201:10809:65540, HWI-ST689:299:C69M9ACXX:1:1201:10809:65540
+        warning[vg::Watchdog]: Thread 26 finally checked out after 10 seconds and 730704 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1201:10809:65540, HWI-ST689:299:C69M9ACXX:1:1201:10809:65540
+        warning[vg::Watchdog]: Thread 35 finally checked out after 14 seconds and 798168 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1201:20221:47773, HWI-ST689:299:C69M9ACXX:1:1201:20221:47773
+        warning[vg::Watchdog]: Thread 41 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1203:20565:81586, HWI-ST689:299:C69M9ACXX:1:1203:20565:81586
+        warning[vg::Watchdog]: Thread 41 finally checked out after 15 seconds and 174540 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1203:20565:81586, HWI-ST689:299:C69M9ACXX:1:1203:20565:81586
+        warning[vg::Watchdog]: Thread 14 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1208:4454:37799, HWI-ST689:299:C69M9ACXX:1:1208:4454:37799
+        warning[vg::Watchdog]: Thread 5 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1208:13504:67557, HWI-ST689:299:C69M9ACXX:1:1208:13504:67557
+        warning[vg::Watchdog]: Thread 14 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1208:4454:37799, HWI-ST689:299:C69M9ACXX:1:1208:4454:37799
+        warning[vg::Watchdog]: Thread 5 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1208:13504:67557, HWI-ST689:299:C69M9ACXX:1:1208:13504:67557
+        warning[vg::Watchdog]: Thread 0 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1210:1589:58984, HWI-ST689:299:C69M9ACXX:1:1210:1589:58984
+        warning[vg::Watchdog]: Thread 0 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1210:1589:58984, HWI-ST689:299:C69M9ACXX:1:1210:1589:58984
+        warning[vg::Watchdog]: Thread 63 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1213:10397:95708, HWI-ST689:299:C69M9ACXX:1:1213:10397:95708
+        warning[vg::Watchdog]: Thread 63 finally checked out after 10 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1213:10397:95708, HWI-ST689:299:C69M9ACXX:1:1213:10397:95708
+        warning[vg::Watchdog]: Thread 40 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1214:8120:40239, HWI-ST689:299:C69M9ACXX:1:1214:8120:40239
+        warning[vg::Watchdog]: Thread 40 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1214:8120:40239, HWI-ST689:299:C69M9ACXX:1:1214:8120:40239
+        warning[vg::Watchdog]: Thread 52 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1215:12647:81836, HWI-ST689:299:C69M9ACXX:1:1215:12647:81836
+        warning[vg::Watchdog]: Thread 52 finally checked out after 12 seconds and 87080 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1215:12647:81836, HWI-ST689:299:C69M9ACXX:1:1215:12647:81836
+        warning[vg::Watchdog]: Thread 43 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1216:12424:77986, HWI-ST689:299:C69M9ACXX:1:1216:12424:77986
+        warning[vg::Watchdog]: Thread 43 finally checked out after 17 seconds and 167408 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1216:12424:77986, HWI-ST689:299:C69M9ACXX:1:1216:12424:77986
+        warning[vg::Watchdog]: Thread 36 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1306:3380:45286, HWI-ST689:299:C69M9ACXX:1:1306:3380:45286
+        warning[vg::Watchdog]: Thread 36 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1306:3380:45286, HWI-ST689:299:C69M9ACXX:1:1306:3380:45286
+        warning[vg::Watchdog]: Thread 61 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1307:5692:69195, HWI-ST689:299:C69M9ACXX:1:1307:5692:69195
+        warning[vg::Watchdog]: Thread 61 finally checked out after 10 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1307:5692:69195, HWI-ST689:299:C69M9ACXX:1:1307:5692:69195
+        warning[vg::Watchdog]: Thread 62 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1310:17505:6786, HWI-ST689:299:C69M9ACXX:1:1310:17505:6786
+        warning[vg::Watchdog]: Thread 62 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1310:17505:6786, HWI-ST689:299:C69M9ACXX:1:1310:17505:6786
+        warning[vg::Watchdog]: Thread 42 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1311:17352:70719, HWI-ST689:299:C69M9ACXX:1:1311:17352:70719
+        warning[vg::Watchdog]: Thread 18 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1311:7073:82676, HWI-ST689:299:C69M9ACXX:1:1311:7073:82676
+        warning[vg::Watchdog]: Thread 42 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1311:17352:70719, HWI-ST689:299:C69M9ACXX:1:1311:17352:70719
+        warning[vg::Watchdog]: Thread 18 finally checked out after 14 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1311:7073:82676, HWI-ST689:299:C69M9ACXX:1:1311:7073:82676
+        warning[vg::Watchdog]: Thread 19 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1312:20784:80458, HWI-ST689:299:C69M9ACXX:1:1312:20784:80458
+        warning[vg::Watchdog]: Thread 19 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1312:20784:80458, HWI-ST689:299:C69M9ACXX:1:1312:20784:80458
+        warning[vg::Watchdog]: Thread 8 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1313:4835:75108, HWI-ST689:299:C69M9ACXX:1:1313:4835:75108
+        warning[vg::Watchdog]: Thread 8 finally checked out after 12 seconds and 18324 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1313:4835:75108, HWI-ST689:299:C69M9ACXX:1:1313:4835:75108
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1314:2982:24248, HWI-ST689:299:C69M9ACXX:1:1314:2982:24248
+        warning[vg::Watchdog]: Thread 25 finally checked out after 12 seconds and 43136 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1314:2982:24248, HWI-ST689:299:C69M9ACXX:1:1314:2982:24248
+        warning[vg::Watchdog]: Thread 24 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1315:9591:100506, HWI-ST689:299:C69M9ACXX:1:1315:9591:100506
+        warning[vg::Watchdog]: Thread 37 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1316:17767:20340, HWI-ST689:299:C69M9ACXX:1:1316:17767:20340
+        warning[vg::Watchdog]: Thread 37 finally checked out after 10 seconds and 114492 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1316:17767:20340, HWI-ST689:299:C69M9ACXX:1:1316:17767:20340
+        warning[vg::Watchdog]: Thread 24 finally checked out after 13 seconds and 114492 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1315:9591:100506, HWI-ST689:299:C69M9ACXX:1:1315:9591:100506
+        warning[vg::Watchdog]: Thread 4 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:1316:4422:58675, HWI-ST689:299:C69M9ACXX:1:1316:4422:58675
+        warning[vg::Watchdog]: Thread 4 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:1316:4422:58675, HWI-ST689:299:C69M9ACXX:1:1316:4422:58675
+        warning[vg::Watchdog]: Thread 26 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2101:6098:50583, HWI-ST689:299:C69M9ACXX:1:2101:6098:50583
+        warning[vg::Watchdog]: Thread 31 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2101:13123:53905, HWI-ST689:299:C69M9ACXX:1:2101:13123:53905
+        warning[vg::Watchdog]: Thread 26 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2101:6098:50583, HWI-ST689:299:C69M9ACXX:1:2101:6098:50583
+        warning[vg::Watchdog]: Thread 63 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2101:15251:6315, HWI-ST689:299:C69M9ACXX:1:2101:15251:6315
+        warning[vg::Watchdog]: Thread 31 finally checked out after 13 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2101:13123:53905, HWI-ST689:299:C69M9ACXX:1:2101:13123:53905
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2102:10484:18078, HWI-ST689:299:C69M9ACXX:1:2102:10484:18078
+        warning[vg::Watchdog]: Thread 32 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2102:5690:31021, HWI-ST689:299:C69M9ACXX:1:2102:5690:31021
+        warning[vg::Watchdog]: Thread 63 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2101:15251:6315, HWI-ST689:299:C69M9ACXX:1:2101:15251:6315
+        warning[vg::Watchdog]: Thread 32 finally checked out after 10 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2102:5690:31021, HWI-ST689:299:C69M9ACXX:1:2102:5690:31021
+        warning[vg::Watchdog]: Thread 25 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2102:10484:18078, HWI-ST689:299:C69M9ACXX:1:2102:10484:18078
+        warning[vg::Watchdog]: Thread 28 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2104:4048:100514, HWI-ST689:299:C69M9ACXX:1:2104:4048:100514
+        warning[vg::Watchdog]: Thread 28 finally checked out after 13 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2104:4048:100514, HWI-ST689:299:C69M9ACXX:1:2104:4048:100514
+        warning[vg::Watchdog]: Thread 4 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2108:19157:86376, HWI-ST689:299:C69M9ACXX:1:2108:19157:86376
+        warning[vg::Watchdog]: Thread 4 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2108:19157:86376, HWI-ST689:299:C69M9ACXX:1:2108:19157:86376
+        warning[vg::Watchdog]: Thread 31 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2109:18321:44681, HWI-ST689:299:C69M9ACXX:1:2109:18321:44681
+        warning[vg::Watchdog]: Thread 31 finally checked out after 13 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2109:18321:44681, HWI-ST689:299:C69M9ACXX:1:2109:18321:44681
+        warning[vg::Watchdog]: Thread 17 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2110:9184:28036, HWI-ST689:299:C69M9ACXX:1:2110:9184:28036
+        warning[vg::Watchdog]: Thread 27 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2111:17419:27871, HWI-ST689:299:C69M9ACXX:1:2111:17419:27871
+        warning[vg::Watchdog]: Thread 27 finally checked out after 14 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2111:17419:27871, HWI-ST689:299:C69M9ACXX:1:2111:17419:27871
+        warning[vg::Watchdog]: Thread 17 finally checked out after 16 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2110:9184:28036, HWI-ST689:299:C69M9ACXX:1:2110:9184:28036
+        warning[vg::Watchdog]: Thread 28 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2115:9884:15026, HWI-ST689:299:C69M9ACXX:1:2115:9884:15026
+        warning[vg::Watchdog]: Thread 38 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2115:11007:6364, HWI-ST689:299:C69M9ACXX:1:2115:11007:6364
+        warning[vg::Watchdog]: Thread 28 finally checked out after 10 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2115:9884:15026, HWI-ST689:299:C69M9ACXX:1:2115:9884:15026
+        warning[vg::Watchdog]: Thread 9 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2115:5427:29878, HWI-ST689:299:C69M9ACXX:1:2115:5427:29878
+        warning[vg::Watchdog]: Thread 38 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2115:11007:6364, HWI-ST689:299:C69M9ACXX:1:2115:11007:6364
+        warning[vg::Watchdog]: Thread 9 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2115:5427:29878, HWI-ST689:299:C69M9ACXX:1:2115:5427:29878
+        warning[vg::Watchdog]: Thread 9 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2203:6446:11084, HWI-ST689:299:C69M9ACXX:1:2203:6446:11084
+        warning[vg::Watchdog]: Thread 9 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2203:6446:11084, HWI-ST689:299:C69M9ACXX:1:2203:6446:11084
+        warning[vg::Watchdog]: Thread 32 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2206:20994:11516, HWI-ST689:299:C69M9ACXX:1:2206:20994:11516
+        warning[vg::Watchdog]: Thread 32 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2206:20994:11516, HWI-ST689:299:C69M9ACXX:1:2206:20994:11516
+        warning[vg::Watchdog]: Thread 25 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2207:6946:11589, HWI-ST689:299:C69M9ACXX:1:2207:6946:11589
+        warning[vg::Watchdog]: Thread 56 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2207:12883:5993, HWI-ST689:299:C69M9ACXX:1:2207:12883:5993
+        warning[vg::Watchdog]: Thread 21 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2207:9930:32882, HWI-ST689:299:C69M9ACXX:1:2207:9930:32882
+        warning[vg::Watchdog]: Thread 25 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2207:6946:11589, HWI-ST689:299:C69M9ACXX:1:2207:6946:11589
+        warning[vg::Watchdog]: Thread 29 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2207:19523:60527, HWI-ST689:299:C69M9ACXX:1:2207:19523:60527
+        warning[vg::Watchdog]: Thread 21 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2207:9930:32882, HWI-ST689:299:C69M9ACXX:1:2207:9930:32882
+        warning[vg::Watchdog]: Thread 56 finally checked out after 16 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2207:12883:5993, HWI-ST689:299:C69M9ACXX:1:2207:12883:5993
+        warning[vg::Watchdog]: Thread 29 finally checked out after 14 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2207:19523:60527, HWI-ST689:299:C69M9ACXX:1:2207:19523:60527
+        warning[vg::Watchdog]: Thread 33 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2210:5718:23651, HWI-ST689:299:C69M9ACXX:1:2210:5718:23651
+        warning[vg::Watchdog]: Thread 33 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2210:5718:23651, HWI-ST689:299:C69M9ACXX:1:2210:5718:23651
+        warning[vg::Watchdog]: Thread 6 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2211:16092:28630, HWI-ST689:299:C69M9ACXX:1:2211:16092:28630
+        warning[vg::Watchdog]: Thread 6 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2211:16092:28630, HWI-ST689:299:C69M9ACXX:1:2211:16092:28630
+        warning[vg::Watchdog]: Thread 63 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2212:16417:2376, HWI-ST689:299:C69M9ACXX:1:2212:16417:2376
+        warning[vg::Watchdog]: Thread 63 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2212:16417:2376, HWI-ST689:299:C69M9ACXX:1:2212:16417:2376
+        warning[vg::Watchdog]: Thread 16 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2212:15031:66955, HWI-ST689:299:C69M9ACXX:1:2212:15031:66955
+        warning[vg::Watchdog]: Thread 23 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2303:7004:97381, HWI-ST689:299:C69M9ACXX:1:2303:7004:97381
+        warning[vg::Watchdog]: Thread 16 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2212:15031:66955, HWI-ST689:299:C69M9ACXX:1:2212:15031:66955
+        warning[vg::Watchdog]: Thread 23 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2303:7004:97381, HWI-ST689:299:C69M9ACXX:1:2303:7004:97381
+        warning[vg::Watchdog]: Thread 44 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2213:12575:15159, HWI-ST689:299:C69M9ACXX:1:2213:12575:15159
+        warning[vg::Watchdog]: Thread 44 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2213:12575:15159, HWI-ST689:299:C69M9ACXX:1:2213:12575:15159
+        warning[vg::Watchdog]: Thread 27 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2214:14367:30249, HWI-ST689:299:C69M9ACXX:1:2214:14367:30249
+        warning[vg::Watchdog]: Thread 14 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2214:4760:48320, HWI-ST689:299:C69M9ACXX:1:2214:4760:48320
+        warning[vg::Watchdog]: Thread 27 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2214:14367:30249, HWI-ST689:299:C69M9ACXX:1:2214:14367:30249
+        warning[vg::Watchdog]: Thread 14 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2214:4760:48320, HWI-ST689:299:C69M9ACXX:1:2214:4760:48320
+        warning[vg::Watchdog]: Thread 24 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2215:11783:95710, HWI-ST689:299:C69M9ACXX:1:2215:11783:95710
+        warning[vg::Watchdog]: Thread 24 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2215:11783:95710, HWI-ST689:299:C69M9ACXX:1:2215:11783:95710
+        warning[vg::Watchdog]: Thread 18 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2305:16245:49428, HWI-ST689:299:C69M9ACXX:1:2305:16245:49428
+        warning[vg::Watchdog]: Thread 18 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2305:16245:49428, HWI-ST689:299:C69M9ACXX:1:2305:16245:49428
+        warning[vg::Watchdog]: Thread 28 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2310:15670:23179, HWI-ST689:299:C69M9ACXX:1:2310:15670:23179
+        warning[vg::Watchdog]: Thread 60 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2310:12052:43668, HWI-ST689:299:C69M9ACXX:1:2310:12052:43668
+        warning[vg::Watchdog]: Thread 28 finally checked out after 12 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2310:15670:23179, HWI-ST689:299:C69M9ACXX:1:2310:15670:23179
+        warning[vg::Watchdog]: Thread 60 finally checked out after 13 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2310:12052:43668, HWI-ST689:299:C69M9ACXX:1:2310:12052:43668
+        warning[vg::Watchdog]: Thread 9 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2311:16563:10325, HWI-ST689:299:C69M9ACXX:1:2311:16563:10325
+        warning[vg::Watchdog]: Thread 9 finally checked out after 11 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2311:16563:10325, HWI-ST689:299:C69M9ACXX:1:2311:16563:10325
+        warning[vg::Watchdog]: Thread 10 has been checked in for 10 seconds processing: HWI-ST689:299:C69M9ACXX:1:2312:11864:9663, HWI-ST689:299:C69M9ACXX:1:2312:11864:9663
+        warning[vg::Watchdog]: Thread 10 finally checked out after 10 seconds and 0 kb memory growth processing: HWI-ST689:299:C69M9ACXX:1:2312:11864:9663, HWI-ST689:299:C69M9ACXX:1:2312:11864:9663
+    + alignment first time work out, similar to other graph -> not a graph construction problem
+        MAPQ = 0: 7251229
+        0 < MAPQ < 30: 3956277
+        30 <= MAPQ < 60: 2921821
+        MAPQ = 60: 95053869
+    *****+ call peak 41240706
+- K27_FLU giraffe chm13 
+    + no alignment error log 41200369
+    +   MAPQ = 0: 43038280
+        0 < MAPQ < 30: 33144176
+        30 <= MAPQ < 60: 45427686
+        MAPQ = 60: 73307908
+    *****+ call peak 41240736
+- K27_FLU giraffe hprc-v1.1-mc-chm13
+    + alignment 41203280
+    +   MAPQ = 0: 44350289
+        0 < MAPQ < 30: 31770210
+        30 <= MAPQ < 60: 43273367
+        MAPQ = 60: 75524184
+    *****+ call peak 41240733
+- It seems like either vg map always put read to either 0 or 60

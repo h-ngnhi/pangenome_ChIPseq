@@ -76,33 +76,33 @@ alignment() {                   # To map reads using vgmap
     local graph_dir=$wd/Pangenomes/$pipeline/$graph_type
     mkdir -p $results_dir
     cd $results_dir || exit
-    # alignments=()
-    # if [ "$pipeline" == "vg_giraffe" ]; then
-    #     for i in "${!forward[@]}"; do
-    #         vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
-    #         alignments+=("${input}_alignments_$((i+1)).gam")
-    #     done
-    #     cat "${alignments[@]}" > ${input}_alignments.gam
-    #     vg surject -x $graph_dir/$graph_type.gbz -b ${input}_alignments.gam > ${input}_alignments.bam
-    # elif [ "$pipeline" == "vg_map" ]; then
-    #     for i in "${!forward[@]}"; do
-    #         vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f ${forward[i]} -f ${reverse[i]} -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
-    #         alignments+=("${input}_alignments_$((i+1)).gam")
-    #     done
-    #     cat "${alignments[@]}" > ${input}_alignments.gam
-    #     vg surject -x $graph_dir/graph.xg -b ${input}_alignments.gam > ${input}_alignments.bam
-    # fi
+    alignments=()
+    if [ "$pipeline" == "vg_giraffe" ]; then
+        for i in "${!forward[@]}"; do
+            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
+            alignments+=("${input}_alignments_$((i+1)).gam")
+        done
+        cat "${alignments[@]}" > ${input}_alignments.gam
+        vg surject -x $graph_dir/$graph_type.gbz -b ${input}_alignments.gam > ${input}_alignments.bam
+    elif [ "$pipeline" == "vg_map" ]; then
+        for i in "${!forward[@]}"; do
+            vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f ${forward[i]} -f ${reverse[i]} -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
+            alignments+=("${input}_alignments_$((i+1)).gam")
+        done
+        cat "${alignments[@]}" > ${input}_alignments.gam
+        vg surject -x $graph_dir/graph.xg -b ${input}_alignments.gam > ${input}_alignments.bam
+    fi
     vg filter ${input}_alignments.gam -P -fu -q 30 -t 64 > ${input}_alignments.filtered.gam
     vg view -aj ${input}_alignments.filtered.gam > ${input}_alignments.filtered.json
-    # if [ "$input" == "treatment" ]; then
-    #     module load samtools
-    #     samtools view ${input}_alignments.bam | awk '{print $5}' > mapq_scores.txt
-    #     awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-    #     awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
-    #     awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
-    #     awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
-    # fi
-    # cd $wd || exit
+    if [ "$input" == "treatment" ]; then
+        module load samtools
+        samtools view ${input}_alignments.bam | awk '{print $5}' > mapq_scores.txt
+        awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
+        awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
+        awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
+        awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
+    fi
+    cd $wd || exit
 }
 
 
@@ -190,36 +190,38 @@ EOL
 
 
         # Call peaks
-        # mkdir -p \$results_dir/callpeaks/
-        # chromosomes=\$(echo \$chromosomes | tr ',' ' ')
-        # for chromosome in \$chromosomes; do
-        #     echo \$chromosome
-        #     treatment_chr=\$(basename \${treatment%.*})
-        #     echo \$treatment_chr
-        #     if [ -n \"\$control\" ]; then
-        #         ctl_chr=\$(basename \${control%.*})
-        #         echo if cond is reached \$ctl_chr
-        #         graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -c \$results_dir/reads_by_chrom/\${ctl_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
-        #     else
-        #         graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
-        #     fi
-        # done
+        mkdir -p \$results_dir/callpeaks/
+        chromosomes=\$(echo \$chromosomes | tr ',' ' ')
+        for chromosome in \$chromosomes; do
+            echo \$chromosome
+            treatment_chr=\$(basename \${treatment%.*})
+            echo \$treatment_chr
+            if [ -n \"\$control\" ]; then
+                ctl_chr=\$(basename \${control%.*})
+                echo if cond is reached \$ctl_chr
+                graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -c \$results_dir/reads_by_chrom/\${ctl_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
+            else
+                graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
+            fi
+        done
 
-        # cd \$results_dir/callpeaks/
-        # for chromosome in \$chromosomes; do
-        #     echo \$chromosome
-        #     graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-        # done
-        # chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
-        # graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-        # chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
-        # for chromosome in \$chromosomes; do
-        #     echo \$chromosome
-        #     graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
-        #     graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
-        # done
-        # mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
-        # mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
-        # mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
+        cd \$results_dir/callpeaks/
+        for chromosome in \$chromosomes; do
+            echo \$chromosome
+            graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
+        done
+        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+        graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
+        chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
+        for chromosome in \$chromosomes; do
+            echo \$chromosome
+            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
+            graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+        done
+        mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
+        mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
+        mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
+
+        wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
     "
 }
