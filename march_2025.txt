@@ -3,41 +3,90 @@ To-dos:
 2. Organize space, rerun everything with the lastest code
 3. Install GenPipes for Saitou's data
 
+## 18 Mar
+- Finish explanation of vg map algorithm (at least)
+
+## 17 Mar
+- Finish details of vg map
+- Current problems:
+    !!!! vg version difference (hprc doesn't map)
+        + Ashbi vg: variation graph tool, version v1.63.1 "Boccaleone" -> v1.64.0 "Vibbiana" -> v1.61.0 "Plodio"
+        + narval vg: variation graph tool, version v1.61.0 "Plodio"
+    !!!! ashbi KeyError: 'unmapped' + ashbi data does not map to hprc
+        + update lastest vg 1.64.0 - Vibbiana
+            Running hprc 1314423 ---> vg crashed
+            Rerun on chm13 1314424 ----> Still get "unmapped"
+        + install v1.61.0 "Plodio"
+            ***** ashbi giraffe chm13 1314755
+            ***** ashbi giraffe L1_vcfbub 1314762
+            ***** ashbi giraffe hprc 1314763
+    !!!! Linear map not found 
+        ***** 41379061 146 giraffe chm13
+    !!!! K27_FLU can't call peak because Fragment length is smaller than read length.
+        + fragment length and read length of previous alignment 120 and 102
+        ***** because i used control data!!! 41377197
+
+## 14 Mar
+- Solve linear map problem: put linear_path in graph_dir instead of read_by_chrom 
+                              + Delete all linear_path from read_by_chrom?
+    linear_map.npz are still in reads_by_chrom directory!!
+
+R- K27_FLU giraffe vcfbub (new code after linear_path)
+    +   MAPQ = 0: 44098233
+        0 < MAPQ < 30: 31274956
+        30 <= MAPQ < 60: 43951559
+        MAPQ = 60: 75593302
+    + 41285286 Fragment length is smaller than read length. Cannot call peaks.
+
+
 ## 13 Mar
 - 507 giraffe chm13
-    *****+ alignment 41240863
-- 507 giraffe hprc-v1.1-mc-chm13
-    *****+ alignment 41240858
-- ashbi giraffe chm13
+    + alignment 41240863
+    +   MAPQ = 0: 16087521
+        0 < MAPQ < 30: 13912363
+        30 <= MAPQ < 60: 11720358
+        MAPQ = 60: 187709568
+    !!!! call peak error No such file or directory: '/mnt_data/Pangenomes/vg_giraffe/chm13/graphs/chr1_linear_map.npz'
+PD- 507 giraffe hprc-v1.1-mc-chm13
+    + alignment 41240858
+        MAPQ = 0: 20167598
+        0 < MAPQ < 30: 14316605
+        30 <= MAPQ < 60: 10141937
+        MAPQ = 60: 184803670
+R- ashbi giraffe chm13
     + alignment done
-    *****+ call peak 1312424
+    + call peak 1312424 KeyError: 'unmapped' (Cristian)
+    + Cp graph from narval and align and map again 1313946 - can't because graphs was built by a different vg version
 - ashbi giraffe L1_vcfbub
     + alignment done
-    *****+ call peak 1312483   
-- ashbi giraffe hprc-v1.1-mc-chm13
-    !!! alignment cannot map only in ashbi--> redownload the graph and try again, need to at least show that alignment is similar to my own graph
-    ***** 1312587
-- 146 map chm13
-    *****+ alignment 41240820
-- 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
-    *****+ convert graph 41241318
-- Problem call peak with hprc-v1.1-mc-chm13
-    !!! Empty chromosome ranges found 
+    !!! call peak 1312483 KeyError: 'unmapped'  
+!- ashbi giraffe hprc-v1.1-mc-chm13
+    + alignment cannot map only in ashbi--> redownload the graph and try again, need to at least show that alignment is similar to my own graph
+    !!!! Still not map, probably because difference vg version???? (it creates hprc.shortreads.zipcodes file)
+OK- 146 map chm13
+    + alignment 41240820
+    MAPQ = 0: 461278
+    0 < MAPQ < 30: 85592
+    30 <= MAPQ < 60: 47070
+    MAPQ = 60: 108589256
+    + Peak 25705
+PD- 146 map hprc-v1.1-mc-chm13 --> need to properly convert before running map
+    ~~~PD !!! convert graph 41241318 vg crashed at pruning
+PD- Problem call peak with hprc-v1.1-mc-chm13
+    ~~~PD !!! Empty chromosome ranges found 
     chr range is from param, probably it cannot be found because not match vg path
     ---------> DECISION: it was shown that alignment results was similar with my own graph. Can ignore this for now
 
 ## 12 Mar
-- Organize rrg-bourqueg-ad
-- Rerun 146, 507, K27 influenza
-- 146 giraffe chm13 
+!- 146 giraffe chm13 
     + no alignment error log 41194221
     + alignment similar to previous results
         MAPQ = 0: 5429961
         0 < MAPQ < 30: 3628033
         30 <= MAPQ < 60: 3204182
         MAPQ = 60: 96921020
-    *****+ call peak 41240681
-- 146 giraffe vcfbub 
+    !!!!! call peak 41240681 error No such file or directory: '/mnt_data/Pangenomes/vg_giraffe/chm13/graphs/chr13_linear_map.npz'
+OK- 146 giraffe vcfbub 
     + alignment warnings 41194263
         vg giraffe -Z /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz -m /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.min -d /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Pangenomes/vg_giraffe/vcfbub/vcfbub.dist -f /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Graph_genome_data/146Rep2.trim.pair1.fastq.gz -f /home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/Graph_genome_data/146Rep2.trim.pair2.fastq.gz -t 64
         warning[vg::giraffe]: Refusing to perform too-large rescue alignment of 101 bp against 23890 bp ordered subgraph for read D93Z3NS1:275:C8C8MACXX:3:1101:6575:2621 which would use more than 1572864 cells and might exhaust Dozeu's allocator; suppressing further warnings.
@@ -218,8 +267,9 @@ To-dos:
         0 < MAPQ < 30: 3989172
         30 <= MAPQ < 60: 2929413
         MAPQ = 60: 95254748
-    *****+ call peak 41240684
-- 146 giraffe hprc-v1.1-mc-chm13 
+    + call peak 41240684
+      peak 19433
+PD- 146 giraffe hprc-v1.1-mc-chm13 
     + alignment warnings 41199786  
         vg giraffe -Z /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.gbz -m /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.min -d /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Pangenomes/vg_giraffe/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.dist -f /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Graph_genome_data/146Rep1.trim.pair1.fastq.gz -f /home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/Graph_genome_data/146Rep1.trim.pair2.fastq.gz -t 64
         warning[vg::giraffe]: Refusing to perform too-large rescue alignment of 101 bp against 15932 bp ordered subgraph for read HWI-ST689:299:C69M9ACXX:1:1101:14369:31205 which would use more than 1572864 cells and might exhaust Dozeu's allocator; suppressing further warnings.
@@ -363,19 +413,21 @@ To-dos:
         0 < MAPQ < 30: 3956277
         30 <= MAPQ < 60: 2921821
         MAPQ = 60: 95053869
-    !!! call peak 41240706 not succesful
-- K27_FLU giraffe chm13 
+    PD call peak 41240706 not succesful
+!- K27_FLU giraffe chm13 
     + no alignment error log 41200369
     +   MAPQ = 0: 43038280
         0 < MAPQ < 30: 33144176
         30 <= MAPQ < 60: 45427686
         MAPQ = 60: 73307908
-    *****+ call peak 41242692
-- K27_FLU giraffe hprc-v1.1-mc-chm13
+    !!! call peak 41242692
+    ??? CRITICAL: Fragment length is smaller than read length. Cannot call peaks.
+PD - K27_FLU giraffe hprc-v1.1-mc-chm13
     + alignment 41203280
     +   MAPQ = 0: 44350289
         0 < MAPQ < 30: 31770210
         30 <= MAPQ < 60: 43273367
         MAPQ = 60: 75524184
-    !!! call peak 41240733 not successful
+    ~~~ PD !!! call peak 41240733 not successful -> Cristian
+    Fragment length is smaller than read length as well...
 - It seems like either vg map always put read to either 0 or 60...

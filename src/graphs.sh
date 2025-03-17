@@ -172,7 +172,7 @@ cat <<EOL > $wd/params.txt
 fragment_length=$frag_len
 read_length=$read_len
 unique_reads=$unique_reads
-graph=$pipeline/$graph
+graph_dir=Pangenomes/$pipeline/$graph/graphs
 results_dir=$results_dir
 treatment=$treatment
 control=$control
@@ -180,26 +180,24 @@ EOL
 
     SIF_IMAGE="$gp_sif"
     # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
-    BIND_DIR="$wd:/mnt_data"
+    BIND_DIR="$wd:/mnt"
 
     apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
         while IFS= read -r line; do 
             export \$line
-        done < /mnt_data/params.txt
-        results_dir=/mnt_data/\$results_dir
-        graph_dir=/mnt_data/Pangenomes/\$graph/graphs
+        done < /mnt/params.txt
+        results_dir=/mnt/\$results_dir
+        graph_dir=/mnt/\$graph_dir
 
         # Split the treatment and control json files into chromosomes
         # at this step, it is required to pass in all the chromosomes at ones to the command
         chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
-        # chromosomes=\"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,M\"
         graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$treatment \$graph_dir/
         if [ -n \"\$control\" ]; then
             graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$control \$graph_dir/
         fi
         mkdir -p \$results_dir/reads_by_chrom
         mv \$results_dir/*chr*.json \$results_dir/reads_by_chrom/
-
 
         # Call peaks
         mkdir -p \$results_dir/callpeaks/
@@ -208,32 +206,34 @@ EOL
             echo \$chromosome
             treatment_chr=\$(basename \${treatment%.*})
             echo \$treatment_chr
+
+            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
             if [ -n \"\$control\" ]; then
                 ctl_chr=\$(basename \${control%.*})
-                echo if cond is reached \$ctl_chr
+                echo \$ctl_chr
                 graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -c \$results_dir/reads_by_chrom/\${ctl_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
             else
                 graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
             fi
         done
 
-        cd \$results_dir/callpeaks/
-        for chromosome in \$chromosomes; do
-            echo \$chromosome
-            graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-        done
-        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
-        graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-        chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
-        for chromosome in \$chromosomes; do
-            echo \$chromosome
-            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
-            graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
-        done
-        mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
-        mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
-        mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
+        # cd \$results_dir/callpeaks/
+        # for chromosome in \$chromosomes; do
+        #     echo \$chromosome
+        #     graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
+        # done
+        # chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+        # graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
+        # chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
+        # for chromosome in \$chromosomes; do
+        #     echo \$chromosome
+        #     # graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
+        #     graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+        # done
+        # mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
+        # mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
+        # mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
 
-        wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
+        # wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
     "
 }

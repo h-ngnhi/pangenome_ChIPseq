@@ -25,7 +25,7 @@ export wd=$(pwd)
 # Done... Will add more code if needed
 # vg_map_convert hprc-v1.1-mc-chm13
 
-markname=K27_FLU
+markname=146
 pipeline=vg_giraffe         # vg_giraffe or vg_map
 ref=chm13                    # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
 results_dir=$wd/results/${markname}/${pipeline}_${ref}
@@ -36,8 +36,8 @@ input() {
         data_dir=$wd/cgroza_data/H3K27AC_FLU
         forward_trm="$data_dir/treatment/H3K27AC.forward_treatment_1.fastq.gz"
         reverse_trm="$data_dir/treatment/H3K27AC.reverse_treatment_1.fastq.gz"
-        forward_ctl=""
-        reverse_ctl=""
+        forward_ctl="$data_dir/control/H3K27AC.forward_control.fastq.gz"
+        reverse_ctl="$data_dir/control/H3K27AC.reverse_control.fastq.gz"
         trm_json="treatment_alignments.filtered.json"
         ctl_json=""
     elif [[ $markname == "146" || $markname == "507" ]]; then
