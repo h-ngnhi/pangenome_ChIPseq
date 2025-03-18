@@ -136,18 +136,51 @@ EOL
 }
 
 #5. Run chipseq
-chipseq_gp() {
+chipseq_gp_newversion() {
     local markname=$1
     local result_dir=$2
 
-    cd $results_dir
+    cd $results_dir || exit
     #$MUGQIC_PIPELINES_HOME only available to ls command after loading mugqic/genpipes/4.4.5
     genpipes chipseq -c $wd/tools/genpipes/genpipes/pipelines/chipseq/chipseq.base.ini \
                 $wd/genome_data/GenPipes_t2t/narval.ini $result_dir/t2t.ini \
                 -r $result_dir/${markname}.readset.tsv -d $result_dir/${markname}.design.txt \
                 -o $result_dir > chipseqScript.sh
     bash chipseqScript.sh
-    cd $wd
+    cd $wd || exit
+}
+
+chipseq_gp() {
+    local markname=$1
+    local result_dir=$2
+
+    module load mugqic/genpipes/4.4.5
+    module load mugqic/python/3.10.4
+    mkdir -p $result_dir
+    cd $result_dir || exit
+    directory=linear_chm13
+    mkdir -p $directory
+    chipseq.py -c $MUGQIC_PIPELINES_HOME/pipelines/chipseq/chipseq.base.ini \
+                    $MUGQIC_PIPELINES_HOME/pipelines/common_ini/narval.ini t2t.ini \
+                    -r ${markname}.readset.tsv -d ${markname}.design.txt \
+                    -o $directory > "chipseqScript_${markname}.txt" 
+    bash "chipseqScript_${markname}.txt" 
+    cd $wd || exit
+}
+
+#6. Filter primary alignments
+prim_bam() {
+    local markname=$1
+    local bam_file="$wd/results/$markname/linear_chm13/alignment/$markname/ZNF$markname/$markname.ZNF$markname"
+
+    module load samtools
+    samtools view -F 0x900 $bam_file.sorted.dup.bam -o $bam_file.primary.bam
+    local mapq_scores="$bam_file.primary.mapq_scores.txt"
+    samtools view $bam_file.primary.bam | awk '{print $5}' > $mapq_scores
+    awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' $mapq_scores
+    awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' $mapq_scores
+    awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' $mapq_scores
+    awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' $mapq_scores
 }
 # Check if the trimming adapter is needed - normally no for long dna fragments
 # head -n 10000 "$dir/$set/forward_$set.fastq" | grep -E 'AGATCGGAAGAGC'

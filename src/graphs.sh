@@ -12,6 +12,7 @@ vg_giraffe_graph() {            # To create graph and index for vg giraffe
     else
         vg autoindex --workflow giraffe -r $ref -v $variant_vcf -p $graph_type --threads 64
     fi
+    mv $graph_type.giraffe.gbz $graph_type.gbz
     cd $wd || exit
 }
 
@@ -158,22 +159,21 @@ callpeaks() {
     module load apptainer
     if [ "$server" == "narval" ]; then
         SIF_IMAGE="$wd/tools/macs2_latest.sif"
-        BIND_DIR="$wd/$results_dir:/mnt"
+        BIND_DIR="$results_dir:/mnt"
         frag_len=$(apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE macs2 predictd -i /mnt/treatment_alignments.bam 2>&1 | fragment_length)
     elif [ "$server" == "ashbi" ]; then
         module load macs2
-        frag_len=$(macs2 predictd -i $wd/$results_dir/treatment_alignments.bam 2>&1 | fragment_length)
+        frag_len=$(macs2 predictd -i $results_dir/treatment_alignments.bam 2>&1 | fragment_length)
     fi
     read_len=$(zcat $forward_trm | head -2 | tail -1 | wc -c)
-    unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $wd/$results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
+    unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
 
     # Prepare the parameters file for using inside the container (no indent for this command)
-cat <<EOL > $wd/params.txt
+cat <<EOL > $results_dir/params.txt
 fragment_length=$frag_len
 read_length=$read_len
 unique_reads=$unique_reads
 graph_dir=Pangenomes/$pipeline/$graph/graphs
-results_dir=$results_dir
 treatment=$treatment
 control=$control
 EOL
@@ -181,12 +181,13 @@ EOL
     SIF_IMAGE="$gp_sif"
     # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
     BIND_DIR="$wd:/mnt"
+    BIND_DIR_2="$results_dir:/mnt_results"
 
-    apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
+    apptainer exec --contain --cleanenv --bind $BIND_DIR --bind $BIND_DIR_2 $SIF_IMAGE /bin/bash -c "
         while IFS= read -r line; do 
             export \$line
-        done < /mnt/params.txt
-        results_dir=/mnt/\$results_dir
+        done < /mnt_results/params.txt
+        results_dir=/mnt_results/
         graph_dir=/mnt/\$graph_dir
 
         # Split the treatment and control json files into chromosomes
@@ -199,7 +200,7 @@ EOL
         mkdir -p \$results_dir/reads_by_chrom
         mv \$results_dir/*chr*.json \$results_dir/reads_by_chrom/
 
-        # Call peaks
+        # # Call peaks
         mkdir -p \$results_dir/callpeaks/
         chromosomes=\$(echo \$chromosomes | tr ',' ' ')
         for chromosome in \$chromosomes; do
@@ -207,7 +208,6 @@ EOL
             treatment_chr=\$(basename \${treatment%.*})
             echo \$treatment_chr
 
-            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
             if [ -n \"\$control\" ]; then
                 ctl_chr=\$(basename \${control%.*})
                 echo \$ctl_chr
@@ -216,24 +216,32 @@ EOL
                 graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
             fi
         done
+        
+        if ! ls \$graph_dir/*.npz 1> /dev/null 2>&1; then
+            mv \$results_dir/reads_by_chrom/*.npz \$graph_dir/
+            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
+        else
+            mv \$results_dir/reads_by_chrom/*.npz \$graph_dir/
+            mv \$results_dir/reads_by_chrom/*.interval \$graph_dir/
+        fi
 
-        # cd \$results_dir/callpeaks/
-        # for chromosome in \$chromosomes; do
-        #     echo \$chromosome
-        #     graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-        # done
-        # chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
-        # graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-        # chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
-        # for chromosome in \$chromosomes; do
-        #     echo \$chromosome
-        #     # graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
-        #     graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
-        # done
-        # mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
-        # mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
-        # mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
+        cd \$results_dir/callpeaks/
+        for chromosome in \$chromosomes; do
+            echo \$chromosome
+            graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
+        done
+        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+        graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
+        chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
+        for chromosome in \$chromosomes; do
+            echo \$chromosome
+            # graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
+            graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+        done
+        mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
+        mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
+        mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
 
-        # wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
+        wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
     "
 }

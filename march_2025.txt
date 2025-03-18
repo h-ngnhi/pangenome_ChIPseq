@@ -1,37 +1,54 @@
 To-dos:
 1. Put together and clearly learn + explain difference vg map + giraffe
-2. Organize space, rerun everything with the lastest code
-3. Install GenPipes for Saitou's data
+2. MAPQ distribution graph
+3. Peak visualization
+
+## 19 Mar
+- Finish explanation of vg map algorithm (at least)
 
 ## 18 Mar
-- Finish explanation of vg map algorithm (at least)
+- 146 map vcfbub 
+    ***** vg crash 41435606
+- 507 giraffe vcfbub
+    ***** 41435681
+- 507 giraffe chm13 call peak
+    ***** 41435688
+- 507 map chm13
+    ***** 41435702
+*****- K27_FLU genpipes
+*****- ASHBi genpipes
 
 ## 17 Mar
 - Finish details of vg map
 - Current problems:
-    !!!! vg version difference (hprc doesn't map)
+    ~ vg version difference (hprc doesn't map)
         + Ashbi vg: variation graph tool, version v1.63.1 "Boccaleone" -> v1.64.0 "Vibbiana" -> v1.61.0 "Plodio"
         + narval vg: variation graph tool, version v1.61.0 "Plodio"
-    !!!! ashbi KeyError: 'unmapped' + ashbi data does not map to hprc
+    OK ashbi KeyError: 'unmapped' + ashbi data does not map to hprc
         + update lastest vg 1.64.0 - Vibbiana
             Running hprc 1314423 ---> vg crashed
             Rerun on chm13 1314424 ----> Still get "unmapped"
-        + install v1.61.0 "Plodio"
-            ***** ashbi giraffe chm13 1314755
-            ***** ashbi giraffe L1_vcfbub 1314762
-            ***** ashbi giraffe hprc 1314763
-    !!!! Linear map not found 
-        ***** 41379061 146 giraffe chm13
-    !!!! K27_FLU can't call peak because Fragment length is smaller than read length.
-        + fragment length and read length of previous alignment 120 and 102
-        ***** because i used control data!!! 41377197
+        + install v1.61.0 "Plodio" + Adding chrY into the list of chr
+            ***** ashbi giraffe chm13 1316825
+            ***** ashbi giraffe L1_vcfbub 1316368 
+            OK ashbi giraffe hprc 1314763 - mapped
+                MAPQ = 0: 6711501
+                0 < MAPQ < 30: 12576260
+                30 <= MAPQ < 60: 93406737
+                MAPQ = 60: 7742288
+    OK Linear map not found
+             41379061 (A) 41415828 (P) 146 giraffe chm13
+    ~ K27_FLU can't call peak because Fragment length is smaller than read length. (90<102)
+        + fragment length and read length of GenPipes is 66 and 102
+        + control data or not only affect peak calling results
+        + set artificial 105 
 
 ## 14 Mar
 - Solve linear map problem: put linear_path in graph_dir instead of read_by_chrom 
                               + Delete all linear_path from read_by_chrom?
     linear_map.npz are still in reads_by_chrom directory!!
 
-R- K27_FLU giraffe vcfbub (new code after linear_path)
+- K27_FLU giraffe vcfbub (new code after linear_path)
     +   MAPQ = 0: 44098233
         0 < MAPQ < 30: 31274956
         30 <= MAPQ < 60: 43951559

@@ -15,21 +15,28 @@ source pangenome_ChIPseq/src/genpipes.sh
 set -x
 
 start_time=$(date +%s)
-
+chipseq_gp "ipsc_K27" results/iPSC_K27
 # Set TMPDIR because the default /tmp is too small
 export TMPDIR=/lustre07/scratch/hoangnhi/temp
 
 export wd=$(pwd)
 
+# Parameters
+markname=507
+pipeline=vg_map                # vg_giraffe or vg_map
+ref=chm13                      # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
+
 # Construct graphs
-# Done... Will add more code if needed
+variant_vcf=$wd/Graph_genome_data/hprc-v1.1-mc-chm13.vcfbub.a100k.wave.vcf.gz
+backbone=$wd/Graph_genome_data/chm13v2.0.fa
+# func="${pipeline}_graph"
+# $func $variant_vcf $backbone $pipeline
+# split_graph $pipeline $ref $wd/tools/gp.sif
+
 # vg_map_convert hprc-v1.1-mc-chm13
 
-markname=146
-pipeline=vg_giraffe         # vg_giraffe or vg_map
-ref=chm13                    # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
+# Get input data
 results_dir=$wd/results/${markname}/${pipeline}_${ref}
-
 input() {
     local markname=$1
     if [ $markname == "K27_FLU" ]; then
@@ -39,7 +46,7 @@ input() {
         forward_ctl="$data_dir/control/H3K27AC.forward_control.fastq.gz"
         reverse_ctl="$data_dir/control/H3K27AC.reverse_control.fastq.gz"
         trm_json="treatment_alignments.filtered.json"
-        ctl_json=""
+        ctl_json="control_alignments.filtered.json"
     elif [[ $markname == "146" || $markname == "507" ]]; then
         data_dir=$wd/results/$markname/linear_chm13/trim/$markname/ZNF$markname
         forward_trm="$data_dir/${markname}Rep1.trim.pair1.fastq.gz $data_dir/${markname}Rep2.trim.pair1.fastq.gz"
@@ -54,14 +61,14 @@ input() {
 input $markname
 
 # Alignment
-# alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
-# if [ -n "$forward_ctl" ]; then
-#     alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
-# fi
+alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
+if [ -n "$forward_ctl" ]; then
+    alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
+fi
 
 #################
 # Peak calling
-callpeaks "$trm_json" "$ctl_json" "${results_dir#$wd/}" "$ref" $pipeline "narval" $wd/tools/gp.sif
+callpeaks "$trm_json" "$ctl_json" "$results_dir" "$ref" $pipeline "narval" $wd/tools/gp.sif
 
 
 end_time=$(date +%s)
