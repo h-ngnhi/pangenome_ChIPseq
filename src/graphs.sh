@@ -1,5 +1,5 @@
 #!/bin/bash 
-
+export wd=$(pwd)
 vg_giraffe_graph() {            # To create graph and index for vg giraffe
     local variant_vcf=$1
     local ref=$2
@@ -67,6 +67,19 @@ vg_map_convert() {                  # To index from gbz graph for vg_map
     vg index -g graph.gcsa -f mapping.txt -Z 4096 graph.pruned.vg -t 40
 }
 
+graph_bam() {
+    local results_dir=$1
+
+    cd $results_dir || exit
+    module load samtools
+    samtools view treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
+    awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
+    awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
+    awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
+    awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
+    cd $wd || exit
+}
+
 alignment() {                   # To map reads using vgmap
     local pipeline=$1       # vg_giraffe or vg_map
     local graph_type=$2     # chm13 or vcfbub
@@ -96,12 +109,7 @@ alignment() {                   # To map reads using vgmap
     vg filter ${input}_alignments.gam -P -fu -q 30 -t 64 > ${input}_alignments.filtered.gam
     vg view -aj ${input}_alignments.filtered.gam > ${input}_alignments.filtered.json
     if [ "$input" == "treatment" ]; then
-        module load samtools
-        samtools view ${input}_alignments.bam | awk '{print $5}' > mapq_scores.txt
-        awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-        awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
-        awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
-        awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
+        graph_bam $results_dir
     fi
     cd $wd || exit
 }
@@ -137,12 +145,15 @@ split_graph() {                         # To split graphs by chromosomes for GP
 
     module load apptainer
     apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE /bin/bash -c "
-        for file in /mnt_data/*.json; do
-            graph_peak_caller create_ob_graph \$file
+        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+        chromosomes=\$(echo \$chromosomes | tr ',' ' ')
+        for chromosome in \$chromosomes; do
+            graph_peak_caller create_ob_graph /mnt_data/\$chromosome.json
+            graph_peak_caller find_linear_path -g /mnt_data/\$chromosome.nobg /mnt_data/\$chromosome.json \$chromosome /mnt_data/\${chromosome}_linear_path.interval
         done
+    
     "
 }
-
 
 callpeaks() {
     local treatment=$1              # treatment json file
@@ -150,33 +161,46 @@ callpeaks() {
     local results_dir=$3            # result directory
     local graph=$4                  # chm13 or vcfbub
     local pipeline=$5               # vg_giraffe or vg_map
-    local server=$6                 # narval or ashbi
-    local gp_sif=$7
+    local steps=$6                  # steps to run
+    local server=$7                 # narval or ashbi
+    local gp_sif=$8
 
-    fragment_length() {
-        grep -i "predicted fragment length is" | head -n1 | sed -E 's/.*predicted fragment length is[[:space:]]*([0-9]+).*/\1/'
-    }
     module load apptainer
-    if [ "$server" == "narval" ]; then
-        SIF_IMAGE="$wd/tools/macs2_latest.sif"
-        BIND_DIR="$results_dir:/mnt"
-        frag_len=$(apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE macs2 predictd -i /mnt/treatment_alignments.bam 2>&1 | fragment_length)
-    elif [ "$server" == "ashbi" ]; then
-        module load macs2
-        frag_len=$(macs2 predictd -i $results_dir/treatment_alignments.bam 2>&1 | fragment_length)
-    fi
-    read_len=$(zcat $forward_trm | head -2 | tail -1 | wc -c)
-    unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
+    if [[ " $steps " =~ 4 ]]; then
+        fragment_length() {
+            grep -i "predicted fragment length is" | head -n1 | sed -E 's/.*predicted fragment length is[[:space:]]*([0-9]+).*/\1/'
+        }
+        if [ "$server" == "narval" ]; then
+            SIF_IMAGE="$wd/tools/macs2_latest.sif"
+            BIND_DIR="$results_dir:/mnt"
+            frag_len=$(apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE macs2 predictd -i /mnt/treatment_alignments.bam 2>&1 | fragment_length)
+        elif [ "$server" == "ashbi" ]; then
+            module load macs2
+            frag_len=$(macs2 predictd -i $results_dir/treatment_alignments.bam 2>&1 | fragment_length)
+        fi
+        read_len=$(zcat $forward_trm | head -2 | tail -1 | wc -c)
+        unique_reads=$(grep -Po '"sequence": "\K([ACGTNacgtn]{20,})"' $results_dir/treatment_alignments.filtered.json | sort | uniq | wc -l)
 
+        if (( frag_len < read_len )); then
+            # Round up read_len to the nearest multiple of 5.
+            frag_len_org=$frag_len
+            frag_len=$(( ((read_len + 4) / 5) * 5 ))
+        fi
+        
     # Prepare the parameters file for using inside the container (no indent for this command)
 cat <<EOL > $results_dir/params.txt
+fragment_length=$frag_len_org
 fragment_length=$frag_len
 read_length=$read_len
 unique_reads=$unique_reads
 graph_dir=Pangenomes/$pipeline/$graph/graphs
 treatment=$treatment
 control=$control
+steps="$steps"
 EOL
+    else 
+        head -n -1 $results_dir/params.txt > tmp && echo steps=\""$steps"\" >> tmp && mv tmp $results_dir/params.txt
+    fi
 
     SIF_IMAGE="$gp_sif"
     # BIND_DIR="/lustre06/project/6002326/hoangnhi/ZNF146-507-Analysis-on-Pangenome:/mnt_data"
@@ -184,64 +208,156 @@ EOL
     BIND_DIR_2="$results_dir:/mnt_results"
 
     apptainer exec --contain --cleanenv --bind $BIND_DIR --bind $BIND_DIR_2 $SIF_IMAGE /bin/bash -c "
+        echo_slurm() {
+            local message="\$1"
+            echo \$message
+            echo \$message >&2
+        }
+        
         while IFS= read -r line; do 
-            export \$line
+            eval \"export \$line\"
         done < /mnt_results/params.txt
-        results_dir=/mnt_results/
+        results_dir=/mnt_results
         graph_dir=/mnt/\$graph_dir
 
+        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+            
         # Split the treatment and control json files into chromosomes
         # at this step, it is required to pass in all the chromosomes at ones to the command
-        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM\"
-        graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$treatment \$graph_dir/
-        if [ -n \"\$control\" ]; then
-            graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$control \$graph_dir/
-        fi
-        mkdir -p \$results_dir/reads_by_chrom
-        mv \$results_dir/*chr*.json \$results_dir/reads_by_chrom/
-
-        # # Call peaks
-        mkdir -p \$results_dir/callpeaks/
-        chromosomes=\$(echo \$chromosomes | tr ',' ' ')
-        for chromosome in \$chromosomes; do
-            echo \$chromosome
-            treatment_chr=\$(basename \${treatment%.*})
-            echo \$treatment_chr
-
+        if [[ \" \$steps \" =~ 5 ]]; then
+            echo_slurm \"Split the treatment and control json files into chromosomes\"
+            graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$treatment \$graph_dir/
             if [ -n \"\$control\" ]; then
-                ctl_chr=\$(basename \${control%.*})
-                echo \$ctl_chr
-                graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -c \$results_dir/reads_by_chrom/\${ctl_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
-            else
-                graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
+                graph_peak_caller split_vg_json_reads_into_chromosomes \$chromosomes \$results_dir/\$control \$graph_dir/
             fi
-        done
-        
-        if ! ls \$graph_dir/*.npz 1> /dev/null 2>&1; then
-            mv \$results_dir/reads_by_chrom/*.npz \$graph_dir/
-            graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
-        else
-            mv \$results_dir/reads_by_chrom/*.npz \$graph_dir/
-            mv \$results_dir/reads_by_chrom/*.interval \$graph_dir/
+            mkdir -p \$results_dir/reads_by_chrom
+            mv \$results_dir/*chr*.json \$results_dir/reads_by_chrom/
         fi
 
-        cd \$results_dir/callpeaks/
-        for chromosome in \$chromosomes; do
-            echo \$chromosome
-            graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-        done
-        chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
-        graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-        chromosomes=\$(echo \$chromosomes | tr ',' ' ') 
-        for chromosome in \$chromosomes; do
-            echo \$chromosome
-            # graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$results_dir/reads_by_chrom/\${chromosome}_linear_path.interval
-            graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$results_dir\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
-        done
-        mv \$graph_dir/.interval \$results_dir/reads_by_chrom/
-        mv \$graph_dir/*.interval \$results_dir/reads_by_chrom/
-        mv \$graph_dir/*.npz \$results_dir/reads_by_chrom/
+        # Call peaks
+        if [[ \" \$steps \" =~ 6 ]]; then
+            echo_slurm \"Call peaks\"
+            mkdir -p \$results_dir/callpeaks/
+            treatment_chr=\$(basename \${treatment%.*})
+            echo_slurm \$treatment_chr
+            ctl_chr=\$(basename \${control%.*})
+            echo_slurm \$ctl_chr
 
-        wc -l \$results_dir/callpeaks/all_peaks.intervalcollection
+            chromosomes=\$(echo \$chromosomes | tr ',' ' ')
+            for chromosome in \$chromosomes; do
+                echo_slurm \$chromosome
+                if [ -n \"\$control\" ]; then
+                    graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -c \$results_dir/reads_by_chrom/\${ctl_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
+                else
+                    graph_peak_caller callpeaks -g \$graph_dir/\$chromosome.nobg -s \$results_dir/reads_by_chrom/\${treatment_chr}_\$chromosome.json -f \$fragment_length -r \$read_length -u \$unique_reads -p True -G 3100000000 -n \$results_dir/callpeaks/\${chromosome}_
+                fi
+            done
+
+            cd \$results_dir/callpeaks/
+            echo_slurm \"Call peaks for the whole genome\"
+            for chromosome in \$chromosomes; do
+                echo_slurm \$chromosome
+                graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
+                graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+            done
+
+            echo_slurm \"Concatenate_sequence_files\"
+            chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+            graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
+            wc -l all_peaks.intervalcollection
+        fi
+
+        if [[ \" \$steps \" =~ 7 ]]; then
+            cd \$results_dir/callpeaks/
+            echo_slurm \"Call peaks for the whole genome\"
+            chromosomes=\$(echo \$chromosomes | tr ',' ' ')
+            for chromosome in \$chromosomes; do
+                echo_slurm \$chromosome
+                if ! ls \$graph_dir/\${chromosome}_linear_path.interval > /dev/null 2>&1; then
+                    graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
+                fi
+                graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
+                graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+            done
+
+            echo_slurm \"Concatenate_sequence_files\"
+            chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
+            graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
+            wc -l all_peaks.intervalcollection
+        fi
     "
+}
+
+# Editing MAPQ for giraffe distribution
+edit_mapq() {
+    local markname=$1
+    local pipeline=$2
+    local ref=$3
+
+    local results_dir=$wd/results/$markname/${pipeline}_${ref}
+    awk '
+    BEGIN { FS=OFS="\"mapping_quality\":" }
+    {
+    if (NF > 1 && $2 ~ /^[ \t]*[0-9]+/) {
+        split($2, a, /[ ,}]/)
+        if (a[1] > 5) $2 = " 60" substr($2, length(a[1]) + 1)
+    }
+    print
+    }
+    ' $result_dir/treatment_alignments.filtered.json > ${result_dir}_mapq60/treatment_alignments.edited.json
+    cp $result_dir/control_alignments.filtered.json ${result_dir}_mapq60
+}
+
+chipseq_graph() {
+    local markname=$1
+    local pipeline=$2
+    local ref=$3
+    local steps=$4
+    local mapq_edit=$5
+  
+        # Steps of the pipeline
+            # 1. Construct the graph
+            # 2. Split the graph
+            # 3. Align the reads
+            # 4. Calculate parameters for peak calling
+            # 5. Split json to chromosomes
+            # 6. Call peaks
+            # 7. Callpeaks_whole_genome_from_p_values + Find linear
+
+    # Construct graphs
+    if [[ " $steps " =~ 1 ]]; then
+        variant_vcf=$wd/Graph_genome_data/hprc-v1.1-mc-chm13.vcfbub.a100k.wave.vcf.gz
+        backbone=$wd/Graph_genome_data/chm13v2.0.fa
+        func="${pipeline}_graph"
+        $func $variant_vcf $backbone $pipeline
+    fi
+
+    # Split the graph
+    if [[ " $steps " =~ 2 ]]; then
+        split_graph $pipeline $ref $wd/tools/gp.sif
+    fi
+
+    # Get input data
+    input $markname
+    
+    if [ "$mapq_edit" == "mapq60" ]; then
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_edit}
+        mkdir -p $results_dir
+        edit_mapq $markname $pipeline $ref
+        cp $wd/results/${markname}/${pipeline}_${ref}/param.txt $result_dir
+        callpeaks "treatment_alignments.edited.json" "control_alignments.filtered.json" "$results_dir" "$ref" $pipeline "$steps" "narval" $wd/tools/gp.sif
+    else     
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}
+        # Alignment
+        if [[ " $steps " =~ 3 ]]; then
+            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
+            if [ -n "$forward_ctl" ]; then
+                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
+            fi
+        fi
+        # Peak calling
+        if [[ " $steps " =~ (^|[[:space:]])(4|5|6|7)($|[[:space:]]) ]]; then
+            callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "$results_dir" "$ref" $pipeline "$steps" "narval" $wd/tools/gp.sif
+        fi
+    fi
 }

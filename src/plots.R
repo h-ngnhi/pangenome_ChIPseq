@@ -157,7 +157,7 @@ type <- "design2"
 # Nested for loops in R
 for (gene in genes) {
   for (ref in refs) {
-    for (pipeline in pipelines) {
+    for (pipeline in pipelines) { 
       # Construct the file name or directory path
       meta_directory <- paste0(wd, "/meta_analysis_files/", pipeline, "/", gene)
       coverage_file <- paste0(meta_directory, "/", ref, ".L1_coverage.txt")

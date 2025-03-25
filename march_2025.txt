@@ -1,22 +1,70 @@
 To-dos:
-1. Put together and clearly learn + explain difference vg map + giraffe
-2. MAPQ distribution graph
-3. Peak visualization
+1. Change MAPQ distribution and call peak again
+3. Peak visualization (after fixing Graph peak caller)
 
-## 19 Mar
-- Finish explanation of vg map algorithm (at least)
+## 24 Mar
+- Enrichment of L1 in K27_iPSC
+- iPSC giraffe chm13
+    ok 41638297 3 4 5 6
+- iPSC giraffe vcfbub
+    ok 41652451 3456
+- iPSC map chm13 
+    ***** 41665203 7
+
+- 507 map chm13
+    ***** 41665251 7
+- 507 giraffe vcfbub (alignment + call peak)
+    ***** 41665248
+- K27_FLU giraffe chm13
+    ok 41656850 
+- K27_FLU map chm13
+    ***** 41665198 7
+
+
+
+## 20 Mar
+- Plot MAPQ distribution
+- Continue running for other samples
+- Run again K27_FLU using trimmomatic data
+- Decided to keep K27 FLU lacking chrY, will add after the meeting
+- K27_FLU giraffe chm13 
+    + 41522808 34567 (error with cal peak whole genome)
+    ***** 41656850 46
+- K27_FLU giraffe vcfbub 
+     41522811 3 4 5 6 7 (error with cal peak whole genome)
+    + 41637967 7
+    + Call peak 22915
+
+- K27_FLU giraffe hprc
+    41472271  41635071
+- K27_FLU map chm13 
+    + 41522817 34567 (error with cal peak whole genome)
+    + 41652491 56
+    ***** 41665198
+
 
 ## 18 Mar
 - 146 map vcfbub 
-    ***** vg crash 41435606
+    !!! vg crash 41435606
 - 507 giraffe vcfbub
-    ***** 41435681
-- 507 giraffe chm13 call peak
-    ***** 41435688
+    + 41522868 (error with cal peak whole genome)
+    41665026 41665248
+- 507 giraffe chm13 5 6 7
+    + 41635071 3456
+    + Call peak 1657
+
+
 - 507 map chm13
-    ***** 41435702
-*****- K27_FLU genpipes
-*****- ASHBi genpipes
+     41435702
+        MAPQ = 0: 7689442
+        0 < MAPQ < 30: 196884
+        30 <= MAPQ < 60: 114554
+        MAPQ = 60: 221428930
+    call peak 41665251
+- K27_FLU genpipes
+- ASHBi genpipes (skip trimmomatic)
+- ashbi map chm13
+    1318715
 
 ## 17 Mar
 - Finish details of vg map
@@ -29,8 +77,8 @@ To-dos:
             Running hprc 1314423 ---> vg crashed
             Rerun on chm13 1314424 ----> Still get "unmapped"
         + install v1.61.0 "Plodio" + Adding chrY into the list of chr
-            ***** ashbi giraffe chm13 1316825
-            ***** ashbi giraffe L1_vcfbub 1316368 
+             ashbi giraffe chm13 call peaks 1316825
+             ashbi giraffe L1_vcfbub call peaks 1317769
             OK ashbi giraffe hprc 1314763 - mapped
                 MAPQ = 0: 6711501
                 0 < MAPQ < 30: 12576260

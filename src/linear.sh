@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export wd=$(pwd)
 #1. Split interleaved fastq file into forward and reverse fastq files
 # If input fastq contain both forward and reverse
 slit_interleavedfastq() {
@@ -91,21 +91,21 @@ create_design() {
 }
 
 #4. config file creator
-# create_genome() {
-#     local ref=$1            # Directory of FASTA reference
+    # create_genome() {
+    #     local ref=$1            # Directory of FASTA reference
 
-#     module load samtools
-#     module load bwa
+    #     module load samtools
+    #     module load bwa
 
-#     # Create genome dictionary file
-#     samtools dict $ref -o ${ref%.*}.dict
+    #     # Create genome dictionary file
+    #     samtools dict $ref -o ${ref%.*}.dict
 
-#     # Create BWA index
-#     bwa index $ref
+    #     # Create BWA index
+    #     bwa index $ref
 
-#     # Create chromosome size file
-#     samtools faidx $ref -o ${ref%.*}.dict
-# }
+    #     # Create chromosome size file
+    #     samtools faidx $ref -o ${ref%.*}.dict
+    # }
 create_config() {
     local ref=$1                    # Directory for linear reference FASTA
     local result_dir=$2
@@ -153,6 +153,7 @@ chipseq_gp_newversion() {
 chipseq_gp() {
     local markname=$1
     local result_dir=$2
+    local extra_options=$3
 
     module load mugqic/genpipes/4.4.5
     module load mugqic/python/3.10.4
@@ -163,15 +164,21 @@ chipseq_gp() {
     chipseq.py -c $MUGQIC_PIPELINES_HOME/pipelines/chipseq/chipseq.base.ini \
                     $MUGQIC_PIPELINES_HOME/pipelines/common_ini/narval.ini t2t.ini \
                     -r ${markname}.readset.tsv -d ${markname}.design.txt \
-                    -o $directory > "chipseqScript_${markname}.txt" 
+                    -o $directory $extra_options > "chipseqScript_${markname}.txt" 
     bash "chipseqScript_${markname}.txt" 
     cd $wd || exit
 }
 
+check_job_list() {
+    local log_file=$1           # Path to Chipseq_chipseq_job_list_TIMESTAMP in job_output
+    module load mugqic/genpipes/4.4.5 #or whatever version you use
+    $MUGQIC_PIPELINES_HOME/utils/log_report.py --tsv log.out $log_file #should be in job_output
+    less -S log.out
+}
+
 #6. Filter primary alignments
 prim_bam() {
-    local markname=$1
-    local bam_file="$wd/results/$markname/linear_chm13/alignment/$markname/ZNF$markname/$markname.ZNF$markname"
+    local bam_file=${1%.sorted.dup.bam}
 
     module load samtools
     samtools view -F 0x900 $bam_file.sorted.dup.bam -o $bam_file.primary.bam
@@ -182,6 +189,72 @@ prim_bam() {
     awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' $mapq_scores
     awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' $mapq_scores
 }
+
+#7. Check Fragment length and unique reads
+align_stats() {
+    local dir=$(dirname "$1")
+    local bam=$(basename "$1")
+    fragment_length() {
+        grep -i "predicted fragment length is" | head -n1 | sed -E 's/.*predicted fragment length is[[:space:]]*([0-9]+).*/\1/'
+    }
+    module load apptainer
+    module load samtools
+    SIF_IMAGE="$wd/tools/macs2_latest.sif"
+    BIND_DIR="$dir:/mnt"
+    echo Frag len: "$(apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE macs2 predictd -i /mnt/$bam 2>&1 | fragment_length)"
+    echo Uniq reads: "$(samtools view $dir/$bam | awk '{ if (length($10) >= 20) print $10 }' | sort | uniq | wc -l)"
+}
+
 # Check if the trimming adapter is needed - normally no for long dna fragments
 # head -n 10000 "$dir/$set/forward_$set.fastq" | grep -E 'AGATCGGAAGAGC'
 # for treatment
+
+#8. TE enrichment
+enrichment_calc() {
+    local bed_path=$1   # to locate the bed file
+    local bed_file=$2   # to take the file name and create downstream files
+    local csv_file=$3   # to write the enrichment csv file
+    local ref=$4        # to use which ref genome
+    local blacklist=$5  # to use which blacklist file
+    local row_title=$6  # the title of each calculation (1st column)
+    
+    module load bedtools
+    ref_l1="$wd/Genome/$ref.L1.bed" # repeatmasker file
+    rm=$(wc -l $ref_l1) # total number of L1 peaks in the repeatmasker file
+    file=$bed_path/$bed_file
+    echo $file
+    peaks=$(wc -l "$file.narrowPeak.bed")
+    sort -k1,1 -k2,2n "$file.narrowPeak.bed" > "$file.sorted.bed"
+    if ! grep -Eq '^(chr)' "$file.sorted.bed"; then
+        awk '{print "chr"$0}' "$file.sorted.bed" > temp_file && mv temp_file "$file.sorted.bed"
+        # awk -i inplace '{print "chr"$0}' "$file.sorted.bed" # apply only to hg19 GenPipes file because somehow they don't includr "chr"
+    fi
+
+    # count overlap with L1 and calculate p_obs
+    # NEED TO OPTIMIZE: I should've count the peaks only instead of creating a new bed file
+    bedtools intersect -a "$file.sorted.bed" -b $ref_l1 -u > "$bed_path/all_intersection.$ref.bed"
+    obs=$(wc -l "$bed_path/all_intersection.$ref.bed") # total number of peaks overlapping with L1
+    p_obs=$(echo ${obs%% *} / ${rm%% *} | bc -l) # proportion of peaks overlapping with L1
+
+    p_shuffle=0 
+    # shuffle 10 times, exclude blacklist region (not so significant but the paper method said so)
+    for _ in {1..10}
+    do 
+        bedtools shuffle -i "$file.sorted.bed" -g "Genome/human.$ref._noCHR.genome" -noOverlapping -maxTries 1000 -excl $blacklist > "$file.shuffle.bed"
+        awk '{print "chr"$0}' "$file.shuffle.bed" > temp_file && mv temp_file "$file.shuffle.bed"
+        # awk -i inplace '{print "chr"$0}' "$file.shuffle.bed" # output from bedtools doesn't have "chr"$0
+        sort -k1,1 -k2,2n "$file.shuffle.bed" -o "$file.shuffle.bed"
+        bedtools intersect -a "$file.shuffle.bed" -b $ref_l1 -u > "$bed_path/all_intersection_shuffle.$ref.bed"
+        shuffle=$(wc -l "$bed_path/all_intersection_shuffle.$ref.bed") # total number of peaks overlapping with L1 after shuffling
+        echo "${shuffle%% *}"
+        p_shuffle=$(echo $p_shuffle + ${shuffle%% *} / ${rm%% *} | bc -l) # summary of proportion of peaks overlapping with L1 after shuffling
+        echo "$p_shuffle"
+    done
+
+    p_shuffle=$(echo $p_shuffle/10 | bc -l) # average of proportion of peaks overlapping with L1 after shuffling
+
+    enr=$(echo $p_obs / $p_shuffle | bc -l)
+    echo "enrichment $enr"
+    
+    echo -e "${row_title}_${gene}_${ref}\t${peaks%% *}\t${obs%% *}\t$enr" >> "$csv_file"
+}
