@@ -1,0 +1,116 @@
+=== 2025-05-21 03:02:37 ===
+iPSC_K27 vg_giraffe chm13 3 4 '' k=9 w=4-> job_id:44109123
+iPSC_K27 vg_giraffe chm13 3 4 '' k=11 w=5-> job_id:44109124
+iPSC_K27 vg_giraffe chm13 3 4 '' k=13 w=6-> job_id:44109125
+iPSC_K27 vg_giraffe chm13 3 4 '' k=15 w=7-> job_id:44109126
+=== 2025-05-16 00:40:59 ===
+146 vg_giraffe chm13 4 5 6 inject k= w=-> job_id:44020414
+=== 2025-05-15 23:26:58 ===
+146 vg_giraffe chm13 4 5 6 inject k= w=-> job_id:44018943
+
+=== 14/05/2025 ===
+- vg giraffe paper: no specific details about k and w, compare giraffe and map and other 
+    aligners by stimulation (ie. reads were taking from the graph's haplotype sequences 
+    to create a fake set of 150 bp reads (paired or single-end) with realistic errors and
+    quality scores to assess the performance) and real reads (human + yeast, ~150bp).
+    Giraffe accuracy is comparable to map but improved speed.
+- Test k,w: 
+    1. Get smaller set (100,000 reads) - iPSC
+    2. Get kmers list for each k for chr6:42M-45M (vcfbub) 43992204
+    3. Count seed per reads for each kmers (test about 4 combinations)
+
+- Access change of MAPQ
+    * 146 -> linear bam results/146/linear_chm13/alignment/146/ZNF146/146.ZNF146.primary.bam
+             chm13 graph bam results/146/vg_giraffe_chm13/treatment_alignments.bam
+    As 146 alignment does not differ much compared to linear -> access what change in peaks instead
+        inject alignment 43991646 (done)
+
+=== 2025-04-22 07:37:21 ===
+* untrimed input - run again because hasn't call peaks
+iPSC_K27 vg_giraffe chm13 3 4 5 6 '' k=11 w=4 -> job_id:42983997
+iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' k=11 w=4 -> job_id:42983998
+=== 2025-04-21 23:05:57 ===
+* trimed 8 bases input
+iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' k=11 w=4 -> job_id:42977553
+iPSC_K27 vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=11 w=4 -> job_id:42977554
+iPSC_K27 vg_giraffe chm13 3 4 5 6 '' k=11 w=4 -> job_id:42977555
+
+
+=== 2025-04-18 05:10:08 ===
+iPSC_K27 vg_giraffe chm13 3 4 5 6 '' k=11 w=4 -> job_id:42821848
+K27_FLU vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=17 w=7 -> job_id:42821849
+iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' k=11 w=4 -> job_id:42821850
+K27_FLU vg_giraffe chm13 3 4 5 6 '' k=17 w=7 -> job_id:42821851
+iPSC_K27 vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=11 w=4 -> job_id:42821852
+K27_FLU vg_giraffe vcfbub 3 4 5 6 '' k=17 w=7 -> job_id:42821853
+
+=== 2025-04-17 02:43:11 ===
+24h is not enough
+K27_FLU vg_giraffe vcfbub 3 4 5 6 '' k=17 w=7 -> job_id:42747452
+K27_FLU vg_giraffe chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747454
+K27_FLU vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747453
+146 vg_giraffe chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747456
+146 vg_giraffe vcfbub 3 4 5 6 '' k=17 w=7 -> job_id:42747457
+146 vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747458
+507 vg_giraffe vcfbub 3 4 5 6 '' k=17 w=7 -> job_id:42747459
+iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' k=11 w=4 -> job_id:42747460
+507 vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747461
+iPSC_K27 vg_giraffe chm13 3 4 5 6 '' k=11 w=4 -> job_id:42747462
+507 vg_giraffe chm13 3 4 5 6 '' k=17 w=7 -> job_id:42747463
+iPSC_K27 vg_giraffe hprc-v1.1-mc-chm13 3 4 5 6 '' k=11 w=4 -> job_id:42747464
+
+# April 15
+graffiTE chm13 raw 42708529
+iPSC_K27 vg_giraffe chm13 3 4 5 6 '' k=11 w=4-> job_id:42701189
+K27_FLU vg_giraffe chm13 3 4 5 6 '' k=17 w=7-> job_id:42701190
+
+K27_FLU vg_giraffe chm13 3 '' -> job_id:42658129
+To-dos:
+1. Statistic for polymorphic TEs
+2. SC report
+
+## 14 April
+- Run GraffiTE again
+
+=== 2025-04-12 20:32:15 ===
+2025-04-12 20:32:16 507 -> job_id:42563414
+=== 2025-04-12 19:55:51 ===
+2025-04-12 19:55:51 iPSC_K27 -> job_id:42562250
+2025-04-12 19:55:51 146 -> job_id:42562249
+2025-04-12 19:55:51 K27_FLU -> job_id:42562251
+=== 2025-04-12 18:23:37 ===
+2025-04-12 18:23:40 507 -> job_id:42558609
+2025-04-12 18:23:42 K27_FLU -> job_id:42558610
+2025-04-12 18:23:42 146 -> job_id:42558611
+2025-04-12 18:23:42 iPSC_K27 -> job_id:42558612
+
+=== 2025-04-11 20:09:15 ===
+2025-04-11 20:09:20 507 -> job_id:42525501
+2025-04-11 20:09:20 146 -> job_id:42525505
+2025-04-11 20:09:20 K27_FLU -> job_id:42525500
+2025-04-11 20:09:20 iPSC_K27 -> job_id:42525504
+=== 2025-04-11 19:54:23 ===
+2025-04-11 19:54:23 146 -> job_id:42525135
+2025-04-11 19:54:23 507 -> job_id:42525136
+2025-04-11 19:54:23 K27_FLU -> job_id:42525137
+2025-04-11 19:54:23 iPSC_K27 -> job_id:42525138
+=== 2025-04-11 12:20:57 === bwa mem
+2025-04-11 12:20:59 K27_FLU -> job_id:42507260
+2025-04-11 12:20:59 146 -> job_id:42507262
+2025-04-11 12:20:59 507 -> job_id:42507261
+2025-04-11 12:20:59 iPSC_K27 -> job_id:42507258
+## 11 April
+- bwa mem 
+
+=== 2025-04-07 13:43:03 ===
+K27_FLU vg_map chm13 3 4 5 6 '' -> job_id:42290511
+=== 2025-04-07 12:06:37 ===
+K27_FLU vg_giraffe chm13 3 4 5 6 '' -> job_id:42286488
+
+
+## 7 April
+OK - Provide reverse-complemented and swapped adapters for GenPipes and run again
+PD - After getting the trimmed reads, run K27_FLU again
+**vg map** - Extract a small branch of the map created by **vg map** and vg giraffe (emptly graph) and visualize
+- Meeting with Guillaume: discuss about fusion funding ASHBi
+- After confirming MAPQ distribution of graph K27_FLU, ask vg

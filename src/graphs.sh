@@ -69,14 +69,19 @@ vg_map_convert() {                  # To index from gbz graph for vg_map
 
 graph_bam() {
     local results_dir=$1
+    local forward_trm=$2
 
     cd $results_dir || exit
     module load samtools
     samtools view treatment_alignments.bam | awk '{print $5}' > mapq_scores.txt
-    awk '$1 ==0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
-    awk '$1 >0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
+    echo ${forward_trm#$wd} >> "results.txt"
+    {
+    awk '$1 == 0 {count++} END {print "MAPQ = 0:", count+0}' mapq_scores.txt
+    awk '$1 > 0 && $1 < 30 {count++} END {print "0 < MAPQ < 30:", count+0}' mapq_scores.txt
     awk '$1 >= 30 && $1 < 60 {count++} END {print "30 <= MAPQ < 60:", count+0}' mapq_scores.txt
     awk '$1 == 60 {count++} END {print "MAPQ = 60:", count+0}' mapq_scores.txt
+    } >> "results.txt"
+
     cd $wd || exit
 }
 
@@ -88,12 +93,18 @@ alignment() {                   # To map reads using vgmap
     local reverse=($5)      # Array of reverse reads
     local input=$6          # treatment or control
     local graph_dir=$wd/Pangenomes/$pipeline/$graph_type
+    local k=$7
+    local w=$8
+    
     mkdir -p $results_dir
     cd $results_dir || exit
     alignments=()
     if [ "$pipeline" == "vg_giraffe" ]; then
+        if [ ! -f "$graph_dir/$graph_type.k$k.w$w.min" ]; then
+            vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k$k.w$w.min $graph_dir/$graph_type.gbz
+        fi
         for i in "${!forward[@]}"; do
-            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
+            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.k$k.w$w.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
             alignments+=("${input}_alignments_$((i+1)).gam")
         done
         cat "${alignments[@]}" > ${input}_alignments.gam
@@ -109,7 +120,7 @@ alignment() {                   # To map reads using vgmap
     vg filter ${input}_alignments.gam -P -fu -q 30 -t 64 > ${input}_alignments.filtered.gam
     vg view -aj ${input}_alignments.filtered.gam > ${input}_alignments.filtered.json
     if [ "$input" == "treatment" ]; then
-        graph_bam $results_dir
+        graph_bam $results_dir ${forward[1]}
     fi
     cd $wd || exit
 }
@@ -264,7 +275,7 @@ EOL
             echo_slurm \"Concatenate_sequence_files\"
             chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
             graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-            wc -l all_peaks.intervalcollection
+            wc -l all_peaks.intervalcollection >> \$results_dir/results.txt
         fi
 
         if [[ \" \$steps \" =~ 7 ]]; then
@@ -283,7 +294,8 @@ EOL
             echo_slurm \"Concatenate_sequence_files\"
             chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
             graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
-            wc -l all_peaks.intervalcollection
+            wc -l all_peaks.intervalcollection >> \$results_dir/results.txt
+            cd /mnt/
         fi
     "
 }
@@ -295,17 +307,33 @@ edit_mapq() {
     local ref=$3
 
     local results_dir=$wd/results/$markname/${pipeline}_${ref}
-    awk '
-    BEGIN { FS=OFS="\"mapping_quality\":" }
-    {
-    if (NF > 1 && $2 ~ /^[ \t]*[0-9]+/) {
-        split($2, a, /[ ,}]/)
-        if (a[1] > 5) $2 = " 60" substr($2, length(a[1]) + 1)
-    }
-    print
-    }
-    ' $result_dir/treatment_alignments.filtered.json > ${result_dir}_mapq60/treatment_alignments.edited.json
-    cp $result_dir/control_alignments.filtered.json ${result_dir}_mapq60
+    vg filter ${results_dir}/treatment_alignments.gam -P -fu -q 5 -t 64 > ${results_dir}_mapq60/treatment_alignments.mapq5.gam
+    vg view -aj ${results_dir}_mapq60/treatment_alignments.mapq5.gam > ${results_dir}_mapq60/treatment_alignments.mapq5.json
+    perl -pe 's/("mapping_quality":\s*)\d+/${1}60/g' "${results_dir}_mapq60/treatment_alignments.mapq5.json" > "${results_dir}_mapq60/treatment_alignments.edited.json"
+    wc -l ${results_dir}_mapq60/treatment_alignments.edited.json
+    if ! ls ${results_dir}_mapq60/control_alignments.filtered.json > /dev/null 2>&1; then
+        cp $results_dir/control_alignments.filtered.json ${results_dir}_mapq60
+    fi
+}
+
+# Inject alignment from linear bam file
+inject_bam() {
+    local markname=$1
+    local ref=$2
+    local result_dir=$wd/results/$markname/vg_giraffe_${ref}_inject
+    mkdir -p $result_dir
+    local linear_dir=$wd/results/$markname/linear_chm13
+
+    if [[ $markname == "146" || $markname == "507" ]]; then
+        local linear_bam=$linear_dir/alignment/$markname/ZNF$markname/$markname.ZNF$markname.primary.bam
+    else 
+        local linear_bam=$linear_dir/alignment/$markname/$markname/$markname.$markname.primary.bam
+    fi
+    cp $linear_bam $result_dir/treatment_alignments.bam
+    vg inject -x $wd/Pangenomes/vg_giraffe/$ref/$ref.gbz $linear_bam -t 64 > ${result_dir}/treatment_alignments.injected.gam
+    vg filter ${results_dir}/treatment_alignments.injected.gam -P -fu -q 5 -t 64 > ${results_dir}/treatment_alignments.filtered.gam
+    vg view -aj ${results_dir}/treatment_alignments.filtered.gam > ${results_dir}/treatment_alignments.filtered.json
+    cp $wd/results/$markname/vg_giraffe_$ref/control_alignments.filtered.json ${result_dir}/control_alignments.filtered.json
 }
 
 chipseq_graph() {
@@ -313,8 +341,10 @@ chipseq_graph() {
     local pipeline=$2
     local ref=$3
     local steps=$4
-    local mapq_edit=$5
-  
+    local mapq_troubleshoot=$5
+    local k=$6
+    local w=$7
+
         # Steps of the pipeline
             # 1. Construct the graph
             # 2. Split the graph
@@ -323,7 +353,7 @@ chipseq_graph() {
             # 5. Split json to chromosomes
             # 6. Call peaks
             # 7. Callpeaks_whole_genome_from_p_values + Find linear
-
+      
     # Construct graphs
     if [[ " $steps " =~ 1 ]]; then
         variant_vcf=$wd/Graph_genome_data/hprc-v1.1-mc-chm13.vcfbub.a100k.wave.vcf.gz
@@ -340,24 +370,101 @@ chipseq_graph() {
     # Get input data
     input $markname
     
-    if [ "$mapq_edit" == "mapq60" ]; then
-        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_edit}
+    # Identify results directory for each edit (mapq60, inject, or just normal run "")
+    # Alignment if step=3
+    if [ "$mapq_troubleshoot" == "mapq60" ]; then
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}
         mkdir -p $results_dir
-        edit_mapq $markname $pipeline $ref
-        cp $wd/results/${markname}/${pipeline}_${ref}/param.txt $result_dir
-        callpeaks "treatment_alignments.edited.json" "control_alignments.filtered.json" "$results_dir" "$ref" $pipeline "$steps" "narval" $wd/tools/gp.sif
+        cp $wd/results/${markname}/${pipeline}_${ref}/params.txt $results_dir
+        sed -i 's/^treatment=.*/treatment=treatment_alignments.edited.json/' $results_dir/params.txt
+        # "Alignment" which means editing mapq
+        if [[ " $steps " =~ 3 ]]; then
+            edit_mapq $markname $pipeline $ref
+        fi
+        trm_json="treatment_alignments.edited.json"
+    elif [ "$mapq_troubleshoot" == "inject" ]; then
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}
+        mkdir -p $results_dir
+        # Inject alignment
+        if [[ " $steps " =~ 3 ]]; then
+            inject $markname $ref
+        fi
+        trm_json="treatment_alignments.filtered.json"
     else     
         results_dir=$wd/results/${markname}/${pipeline}_${ref}
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
-            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment"
+            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w
             if [ -n "$forward_ctl" ]; then
-                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control"
+                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $k $w
             fi
         fi
-        # Peak calling
-        if [[ " $steps " =~ (^|[[:space:]])(4|5|6|7)($|[[:space:]]) ]]; then
-            callpeaks "treatment_alignments.filtered.json" "control_alignments.filtered.json" "$results_dir" "$ref" $pipeline "$steps" "narval" $wd/tools/gp.sif
-        fi
+        trm_json="treatment_alignments.filtered.json"
     fi
+    if [ -f "$results_dir/results.txt" ]; then
+        echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" >> $results_dir/results.txt
+    else
+        echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" > $results_dir/results.txt
+    fi
+
+    # Peak calling
+    if [[ " $steps " =~ (^|[[:space:]])(4|5|6|7)($|[[:space:]]) ]]; then
+        callpeaks "$trm_json" "control_alignments.filtered.json" "$results_dir" "$ref" $pipeline "$steps" "narval" $wd/tools/gp.sif
+    fi
+}
+
+graffiTE() {
+    local graph_vcf=${1%.vcf.gz}
+    local te=$2
+
+    # #1. Make the graph biallelic because GraffiTE can't work with multiallelic variants
+    # module load bcftools/1.19
+    # zcat $graph_vcf.vcf.gz | bcftools norm -m- -o $graph_vcf.norm.vcf
+
+    # #2. Filter variants that's less than 60bp
+    # awk 'BEGIN {FS="\t"; OFS="\t"} /^#/ {print $0; next} {if (length($4) >= 60 || length($5) >= 60) print $0}' $graph_vcf.norm.vcf > $graph_vcf.filt.vcf
+
+    # #3. Check if variants are unique, rename if not
+    # DUPS=$(awk '!/^#/ {print $3}' "$graph_vcf.filt.vcf" | sort | uniq -d)
+
+    # if [ -n "$DUPS" ]; then
+    #     #Use awk to process the VCF file and rename the variant IDs
+    #     awk 'BEGIN { OFS="\t"; id=1; } {if ($0 ~ /^#/) {print $0;} else {$3 = "var" id++;print $0;}}' $graph_vcf.filt.vcf > $graph_vcf.renamed.vcf
+    # else
+    #     mv $graph_vcf.filt.vcf $graph_vcf.renamed.vcf
+    # fi
+
+    awk 'BEGIN { FS=OFS="\t" }
+    {
+        # Skip header lines
+        if ($0 ~ /^##/ || $0 ~ /^#CHROM/) {
+            print $0
+        } else {
+            # Replace ">" with "-" in the ID column (3rd column)
+            gsub(">", "-", $3)
+            print $0
+    }
+    }' $graph_vcf.renamed.vcf > $graph_vcf.edited.vcf
+
+    #3. Filter top-level variant through vcfbub (No need to if already build the graph with vcfbub vcf file before)
+    vcfbub --input $graph_vcf.edited.vcf --max-level 0 --max-ref-length 10000  > $graph_vcf.toplev.vcf
+
+    #4. Run GraffiTE
+
+    module load nextflow/23.10.0
+    module load apptainer
+    nextflow run $wd/tools/GraffiTE/main.nf \
+        --vcf $graph_vcf.toplev.vcf \
+        --TE_library $wd/GraffiTE_testset/human_DFAM3.6.fasta \
+        --reference $wd/Graph_genome_data/chm13v2.0.fa \
+        --graph_method giraffe \
+        --mammal --cores 64 \
+        --repeatmasker_memory 249G \
+        --repeatmasker_time 12h \
+        -with-singularity $wd/tools/graffite_latest.sif \
+        -profile cluster \
+        --genotype false
+
+    #5. Filter TE variants
+
 }

@@ -136,20 +136,6 @@ EOL
 }
 
 #5. Run chipseq
-chipseq_gp_newversion() {
-    local markname=$1
-    local result_dir=$2
-
-    cd $results_dir || exit
-    #$MUGQIC_PIPELINES_HOME only available to ls command after loading mugqic/genpipes/4.4.5
-    genpipes chipseq -c $wd/tools/genpipes/genpipes/pipelines/chipseq/chipseq.base.ini \
-                $wd/genome_data/GenPipes_t2t/narval.ini $result_dir/t2t.ini \
-                -r $result_dir/${markname}.readset.tsv -d $result_dir/${markname}.design.txt \
-                -o $result_dir > chipseqScript.sh
-    bash chipseqScript.sh
-    cd $wd || exit
-}
-
 chipseq_gp() {
     local markname=$1
     local result_dir=$2
@@ -258,3 +244,98 @@ enrichment_calc() {
     
     echo -e "${row_title}_${gene}_${ref}\t${peaks%% *}\t${obs%% *}\t$enr" >> "$csv_file"
 }
+
+enrichment_calc_subfam() {
+    local bed_path=$1   # to locate the bed file
+    local bed_file=$2   # to take the file name and create downstream files
+    local csv_file=$3   # to write the enrichment csv file
+    local te=$4 
+    local subfam=$5       # to use which ref genome
+    local blacklist=$6  # to use which blacklist file
+    local ref=$7        # to use which ref genome
+    local mark=$8       # to use which gene name
+    
+    module load bedtools
+    mkdir -p "$wd/Genome/Subfamily_RM_$mark"
+    mkdir -p "$wd/Genome/Subfamily_RM_$mark/$ref"
+    if ! ls "$wd/Genome/Subfamily_RM_$mark/$ref/$subfam.bed" > /dev/null 2>&1; then
+        awk -v subfam="$subfam" '$4 == subfam {print}' "$wd/Genome/$ref.$te.bed" > "$wd/Genome/Subfamily_RM_$mark/$ref/$subfam.bed"
+    fi
+    ref_l1="$wd/Genome/Subfamily_RM_$mark/$ref/$subfam.bed" # repeatmasker file
+    rm=$(wc -l $ref_l1) # total number of L1 peaks in the repeatmasker file
+    file=$bed_path/$bed_file
+    echo $file
+    peaks=$(wc -l "$file.narrowPeak.bed")
+    sort -k1,1 -k2,2n "$file.narrowPeak.bed" > "$file.sorted.bed"
+    if ! grep -Eq '^(chr)' "$file.sorted.bed"; then
+        awk '{print "chr"$0}' "$file.sorted.bed" > temp_file && mv temp_file "$file.sorted.bed"
+        # awk -i inplace '{print "chr"$0}' "$file.sorted.bed" # apply only to hg19 GenPipes file because somehow they don't includr "chr"
+    fi
+
+    # count overlap with L1 and calculate p_obs
+    # NEED TO OPTIMIZE: I should've count the peaks only instead of creating a new bed file
+    # bedtools intersect -a "$file.sorted.bed" -b $ref_l1 -u > "$bed_path/all_intersection.$ref.subfam.bed"
+    obs=$(bedtools intersect -a "$file.sorted.bed" -b $ref_l1 -u | wc -l) # total number of peaks overlapping with L1
+    p_obs=$(echo ${obs%% *} / ${rm%% *} | bc -l) # proportion of peaks overlapping with L1
+
+    p_shuffle=0 
+    # shuffle 10 times, exclude blacklist region (not so significant but the paper method said so)
+    for _ in {1..10}
+    do 
+        bedtools shuffle -i "$file.sorted.bed" -g "Genome/human.$ref._noCHR.genome" -noOverlapping -maxTries 1000 -excl $blacklist > "$file.shuffle.bed"
+        awk '{print "chr"$0}' "$file.shuffle.bed" > temp_file && mv temp_file "$file.shuffle.bed"
+        # awk -i inplace '{print "chr"$0}' "$file.shuffle.bed" # output from bedtools doesn't have "chr"$0
+        sort -k1,1 -k2,2n "$file.shuffle.bed" -o "$file.shuffle.bed"
+        # bedtools intersect -a "$file.shuffle.bed" -b $ref_l1 -u > "$bed_path/all_intersection_shuffle.$ref.subfam.bed"
+        shuffle=$(bedtools intersect -a "$file.shuffle.bed" -b $ref_l1 -u | wc -l) # total number of peaks overlapping with L1 after shuffling
+        echo "${shuffle%% *}"
+        p_shuffle=$(echo $p_shuffle + ${shuffle%% *} / ${rm%% *} | bc -l) # summary of proportion of peaks overlapping with L1 after shuffling
+        echo "$p_shuffle"
+    done
+
+    p_shuffle=$(echo $p_shuffle/10 | bc -l) # average of proportion of peaks overlapping with L1 after shuffling
+
+    enr=$(echo $p_obs / $p_shuffle | bc -l)
+    echo "Peaks: $obs; Enrichment: $enr" >> "$csv_file"
+}
+
+
+enrichment_calc_all_subfam() {
+    local bed_path=$1   # to locate the bed file
+    local bed_file=$2   # to take the file name and create downstream files
+    local csv_file=$3   # to write the enrichment csv file
+    local te=$4        # to use which ref genome
+    local subfam=$5     # to use which subfamily
+    local blacklist=$6  # to use which blacklist file
+
+    ref=t2t
+    file1=$bed_path/$bed_file.narrowPeak.bed
+    file2=$wd/Genome/$ref.$te.bed
+    intersect=$bed_path/all_intersection.te.$ref.bed
+    module load bedtools
+    bedtools intersect -a $file1 -b $file2 -wa -wb | \
+    awk '{
+    key = $1"\t"$2"\t"$3"\t"$4;
+    if (!(key in seen)) {
+        print;
+        seen[key]=1;
+    }
+    }' > $intersect
+
+    awk '{print $9}' $intersect | sort | uniq -c | sort -nr | head -n 20 > $csv_file
+
+    awk '{print $2}' $csv_file | while read subfam; do
+        echo "$subfam" >> $csv_file
+        enrichment_calc_subfam $bed_path $bed_file $csv_file $te $subfam $blacklist
+    done
+}
+bed_path="results/146/linear_chm13/peak_call/146/ZNF146"   # to locate the bed file
+bed_file=146.ZNF146_peaks   # to take the file name and create downstream files
+te=L1       # to use which ref genome
+csv_file=Genome/Subfamily_RM_146/hg38/${te}_enr.csv   # to write the enrichment csv file
+blacklist=Genome/Blacklist/ENCFF356LFX.hg38.bed  # to use which blacklist file
+row_title=146_${te}_linear_chm13   # to use which row title
+# enrichment_calc_all_subfam $bed_path $bed_file $csv_file $te $blacklist
+echo "L1HS" >> $csv_file
+ref=hg38
+# enrichment_calc_subfam "$bed_path" $bed_file $csv_file $te L1HS $blacklist $ref 146

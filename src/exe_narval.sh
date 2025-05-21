@@ -1,86 +1,138 @@
 #!/bin/bash 
-#SBATCH --job-name=hprc_map_146
-#SBATCH --output=slurm-%j.out  # %j will be replaced with the job ID
-#SBATCH --error=slurm-%j.err   # %j will be replaced with the job ID
-#SBATCH --account=def-bourqueg
-#SBATCH --time=24:00:00
-#SBATCH --mem=249G
-#SBATCH --cpus-per-task=64
-
-
-source pangenome_ChIPseq/src/graphs.sh
-source pangenome_ChIPseq/src/linear.sh
-
-# Enable xtrace to log the commands to stderr
-set -x
-
-start_time=$(date +%s)
-
-# Set TMPDIR because the default /tmp is too small
-export TMPDIR=/lustre07/scratch/hoangnhi/temp
 
 export wd=$(pwd)
 
+# Define parameters
+export mark_triple=("iPSC_K27 9 4" "iPSC_K27 11 5" "iPSC_K27 13 6" "iPSC_K27 15 7") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
+pipeline=("vg_giraffe")       # vg_giraffe or vg_map
+ref=("chm13")               # e.g., chm13, L1_vcfbub, vcfbub, or hprc-v1.1-mc-chm13
+steps="3 4"             # Steps of the pipeline
+        # Steps of the pipeline
+            # 1. Construct the graph
+            # 2. Split the graph
+            # 3. Align the reads
+            # 4. Calculate parameters for peak calling
+            # 5. Split json to chromosomes
+            # 6. Call peaks + Callpeaks_whole_genome_from_p_values + Find linear
+            # 7. Callpeaks_whole_genome_from_p_values + Find linear
+      
+mapq_troubleshoot=("")        # mapq60 or inject or "" - for troubleshooting mapq
+# # Export variables for the job (they will be available in the sbatch command)
+export pipeline ref steps mapq_edit inject
+
+# Name of the log file
+LOG_FILE="$wd/pangenome_ChIPseq/april_2025.txt"
+TEMP_LOG="$wd/pangenome_ChIPseq/temp_job_log.txt"
+
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" > "$TEMP_LOG"
+
+# Use GNU Parallel to submit up to 5 jobs concurrently.
+# Use double quotes in the parallel command so variables get expanded.
+
+parallel -j5 --linebuffer "
+    IFS=' ' read mark k w <<< {1};
+    JOB_OUT=\$(sbatch -J chipseq_\${mark}_{2}_{3} \$wd/pangenome_ChIPseq/src/exe.sh \$mark {2} {3} \"\$steps\" {4} \$k \$w)
+    JOB_ID=\$(echo \"\$JOB_OUT\" | awk '{print \$4}')
+    echo \"\$mark {2} {3} \$steps {4} k=\$k w=\$w-> job_id:\$JOB_ID\"
+" ::: "${mark_triple[@]}" ::: "${pipeline[@]}" ::: "${ref[@]}" ::: "${mapq_troubleshoot[@]}" >> "$TEMP_LOG"
+
+# parallel -j5 --linebuffer "
+#     JOB_OUT=\$(sbatch -J bwa_{1} \$wd/temp2.sh {1})
+#     JOB_ID=\$(echo \"\$JOB_OUT\" | awk '{print \$4}')
+#     echo \"\$(date '+%Y-%m-%d %H:%M:%S') {1} -> job_id:\$JOB_ID\"
+# " ::: "${markname[@]}" >> "$TEMP_LOG"
+
+# Now, prepend the TEMP_LOG content at the beginning of LOG_FILE.
+tmp=$(mktemp)
+cat "$TEMP_LOG" > "$tmp"
+cat "$LOG_FILE" >> "$tmp"
+mv "$tmp" "$LOG_FILE"
+rm "$TEMP_LOG"
+
+
+# vg find -x Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz -p chr13:1000-2500 -E > Pangenomes/vg_giraffe/vcfbub/giraffe_vcfbub_chr13_1500_2500.vg
+# vg convert -f Pangenomes/vg_giraffe/vcfbub/giraffe_vcfbub_chr13_1500_2500.vg > Pangenomes/vg_giraffe/vcfbub/giraffe_vcfbub_chr13_1500_2500.gfa
+# vg find -x Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz -p chr12:1500-2500 -E
+
 # Access MAPQ GenPipes
-# chipseq_gp ipsc_K27 $wd/results/iPSC_K27 "-s 4-15"
-# prim_bam results/iPSC_K27/linear_chm13/alignment/ipsc_K27/ipsc_K27/ipsc_K27.ipsc_K27.sorted.dup.bam
+# chipseq_gp iPSC_K27 $wd/results/iPSC_K27 "-s 4-15"
+# prim_bam results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.bam
 # align_stats results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.filtered.cleaned.bam
 
-# bed_path=results/507/linear_chm13/peak_call/507/ZNF507  # to locate the bed file
-# bed_file=507.ZNF507_peaks   # to take the file name and create downstream files
-# csv_file=results/507/linear_chm13/enrichment.csv   # to write the enrichment csv file
-# ref=t2t        # to use which ref genome
+
+
+# enrichment_calc() {
+#     local bed_path=$1   # to locate the bed file
+#     local bed_file=$2   # to take the file name and create downstream files
+#     local csv_file=$3   # to write the enrichment csv file
+#     local te=$4        # to use which ref genome
+#     local blacklist=$5  # to use which blacklist file
+#     local row_title=$6  # the title of each calculation (1st column)
+    
+#     module load bedtools
+#     ref=t2t
+#     ref_l1="$wd/Genome/t2t.$te.bed" # repeatmasker file
+#     rm=$(wc -l $ref_l1) # total number of L1 peaks in the repeatmasker file
+#     file=$bed_path/$bed_file
+#     echo $file
+#     peaks=$(wc -l "$file.narrowPeak.bed")
+#     sort -k1,1 -k2,2n "$file.narrowPeak.bed" > "$file.sorted.bed"
+#     if ! grep -Eq '^(chr)' "$file.sorted.bed"; then
+#         awk '{print "chr"$0}' "$file.sorted.bed" > temp_file && mv temp_file "$file.sorted.bed"
+#         # awk -i inplace '{print "chr"$0}' "$file.sorted.bed" # apply only to hg19 GenPipes file because somehow they don't includr "chr"
+#     fi
+
+#     # count overlap with L1 and calculate p_obs
+#     # NEED TO OPTIMIZE: I should've count the peaks only instead of creating a new bed file
+#     bedtools intersect -a $ref_l1 -b "$file.sorted.bed" -u > "$bed_path/all_intersection.$ref.$te.bed"
+#     obs=$(wc -l "$bed_path/all_intersection.$ref.bed") # total number of peaks overlapping with L1
+#     p_obs=$(echo ${obs%% *} / ${rm%% *} | bc -l) # proportion of peaks overlapping with L1
+
+#     p_shuffle=0 
+#     # shuffle 10 times, exclude blacklist region (not so significant but the paper method said so)
+#     for _ in {1..10}
+#     do 
+#         bedtools shuffle -i "$file.sorted.bed" -g "Genome/human.$ref._noCHR.genome" -noOverlapping -maxTries 1000 -excl $blacklist > "$file.shuffle.bed"
+#         awk '{print "chr"$0}' "$file.shuffle.bed" > temp_file && mv temp_file "$file.shuffle.bed"
+#         # awk -i inplace '{print "chr"$0}' "$file.shuffle.bed" # output from bedtools doesn't have "chr"$0
+#         sort -k1,1 -k2,2n "$file.shuffle.bed" -o "$file.shuffle.bed"
+#         bedtools intersect -a "$file.shuffle.bed" -b $ref_l1 -u > "$bed_path/all_intersection_shuffle.$ref.bed"
+#         shuffle=$(wc -l "$bed_path/all_intersection_shuffle.$ref.bed") # total number of peaks overlapping with L1 after shuffling
+#         echo "${shuffle%% *}"
+#         p_shuffle=$(echo $p_shuffle + ${shuffle%% *} / ${rm%% *} | bc -l) # summary of proportion of peaks overlapping with L1 after shuffling
+#         echo "$p_shuffle"
+#     done
+
+#     p_shuffle=$(echo $p_shuffle/10 | bc -l) # average of proportion of peaks overlapping with L1 after shuffling
+
+#     enr=$(echo $p_obs / $p_shuffle | bc -l)
+#     echo "enrichment $enr"
+    
+#     echo -e "${row_title}_${gene}_${ref}\t${peaks%% *}\t${obs%% *}\t$enr" >> "$csv_file"
+# }
+# bed_path=results/iPSC_K27/linear_chm13/peak_call/ipsc_K27/ipsc_K27/   # to locate the bed file
+# bed_file=ipsc_K27.ipsc_K27_peaks   # to take the file name and create downstream files
+# te=sva       # to use which ref genome
+# csv_file=results/iPSC_K27/linear_chm13/${te}_enr.csv   # to write the enrichment csv file
 # blacklist=Genome/Blacklist/t2t.excluderanges.bed  # to use which blacklist file
-# row_title=507_linear_chm13   # to use which row title
-# enrichment_calc $bed_path $bed_file $csv_file $ref $blacklist $row_title
+# row_title=iPSC_${te}_linear_chm13   # to use which row title
+# enrichment_calc $bed_path $bed_file $csv_file $te $blacklist $row_title
+# bed=results/iPSC_K27/linear_chm13/peak_call/ipsc_K27/ipsc_K27/all_intersection.t2t.$te.bed
+# wc -l $bed
+# awk '{print $4}' $bed | sort | uniq -c | sort -nr | head -n 10
 
-# Get input data
-input() {
-    local markname=$1
-    if [ $markname == "K27_FLU" ]; then
-        data_dir=$wd/results/K27_FLU/linear_chm13/trim
-        forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment1.trim.pair1.fastq.gz"
-        reverse_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment1.trim.pair2.fastq.gz"
-        forward_ctl="$data_dir/H3K27AC_Input/Input/control.trim.pair1.fastq.gz"
-        reverse_ctl="$data_dir/H3K27AC_Input/Input/control.trim.pair2.fastq.gz"
-    elif [[ $markname == "146" || $markname == "507" ]]; then
-        data_dir=$wd/results/$markname/linear_chm13/trim/$markname
-        forward_trm="$data_dir/ZNF$markname/${markname}Rep1.trim.pair1.fastq.gz $data_dir/ZNF$markname/${markname}Rep2.trim.pair1.fastq.gz"
-        reverse_trm="$data_dir/ZNF$markname/${markname}Rep1.trim.pair2.fastq.gz $data_dir/ZNF$markname/${markname}Rep2.trim.pair2.fastq.gz"
-        forward_ctl="$data_dir/Input/${markname}Input.trim.pair1.fastq.gz"
-        reverse_ctl="$data_dir/Input/${markname}Input.trim.pair2.fastq.gz"
-    elif [ $markname == "iPSC_K27" ]; then
-        data_dir=$wd/data/iPSC
-        forward_trm="$data_dir/p_N_iPSC_K27ac_r1_S5_R1_001.fastq.gz $data_dir/p_N_iPSC_K27ac_r2_S20_R1_001.fastq.gz"
-        reverse_trm="$data_dir/p_N_iPSC_K27ac_r1_S5_R2_001.fastq.gz $data_dir/p_N_iPSC_K27ac_r2_S20_R2_001.fastq.gz"
-        forward_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R1_001.fastq.gz"
-        reverse_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz"
-    fi
-}
-
-# Parameters
-markname=iPSC_K27            # K27_FLU / 146 / 507
-pipeline=vg_giraffe       # vg_giraffe or vg_map
-ref=chm13                 # chm13 / L1_vcfbub / vcfbub / hprc-v1.1-mc-chm13
-steps="7"         # Steps of the pipeline
-mapq_edit="mapq60"  # mapq60 / ""
-# Steps of the pipeline
-
-    # 1. Construct the graph
-    # 2. Split the graph
-    # 3. Align the reads
-    # 4. Calculate parameters for peak calling
-    # 5. Split json to chromosomes
-    # 6. Call peaks
-    # NOTE: Haven't consider vg_map_convert hprc-v1.1-mc-chm13
-
-chipseq_graph $markname $pipeline $ref "$steps" $mapq_edit
-
-end_time=$(date +%s)
-elapsed=$(( (end_time - start_time) / 3600 ))
-
-# SIF_IMAGE="$wd/tools/gp.sif"
-# BIND_DIR="$wd:/mnt"
-# apptainer exec --contain --cleanenv --bind $BIND_DIR $SIF_IMAGE graph_peak_caller callpeaks_whole_genome_from_p_values 
-# Log the total runtime
-echo "Total runtime: ${elapsed} hours" 
+# java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 4 \
+#   results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1.trim.pair1.fastq.gz results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1.trim.pair2.fastq.gz \
+#   results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.pair1.fastq.gz results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.unpair1.fastq.gz \
+#   results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.pair2.fastq.gz results/K27_FLU/trim/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.unpair2.fastq.gz \
+#   HEADCROP:15
+# java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 4 \
+#   data/iPSC/p_N_iPSC_K27ac_r2_S20_R1_001.fastq.gz data/iPSC/p_N_iPSC_K27ac_r2_S20_R2_001.fastq.gz \
+#   data/iPSC/Treatment2.trim.pair1.fastq.gz data/iPSC/Treatment2.trim.unpair1.fastq.gz \
+#   data/iPSC/Treatment2.trim.pair2.fastq.gz data/iPSC/Treatment2.trim.unpair2.fastq.gz \
+#   HEADCROP:8
+# java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 4 \
+#   data/iPSC/p_N_iPSC_Input_r1_S18_R1_001.fastq.gz data/iPSC/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz \
+#   data/iPSC/Input.trim.pair1.fastq.gz data/iPSC/Input.trim.unpair1.fastq.gz \
+#   data/iPSC/Input.trim.pair2.fastq.gz data/iPSC/Input.trim.unpair2.fastq.gz \
+#   HEADCROP:8
