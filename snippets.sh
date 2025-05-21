@@ -123,23 +123,16 @@
 
 ###########################################
 # Create small dataset (aligned fastq) in the chosen range
-  bam="results/iPSC_K27/linear_chm13/alignment/iPSC_K27/iPSC_K27/iPSC_K27.iPSC_K27.sorted.dup.filtered.bam"
+  bam="results/iPSC_K27/linear_chm13/alignment/iPSC_K27/iPSC_K27/iPSC_K27.iPSC_K27.sorted.bam"
   region="chr6:42000000-45000000"
-  fastq1="data/iPSC/Treatment1.trim.pair2.fastq.gz"
-  out_fastq="data/iPSC/Treatment1.trim.pair2.chr6.42M_45M.fastq.gz"
 
-  # 2) Grab just the reads in that region (names only)
-  samtools view -@4 "$bam" "$region" \
-    | cut -f1 \
-    | sort -u \
-    > data/iPSC/chr6.42M_45M_read_ids.txt
-
-  # 3) Pull those IDs back out of the original FASTQ1
-  #    Using seqtk (fast and memory‐efficient)
-  module load seqtk
-  seqtk subseq "$fastq1" data/iPSC/chr6.42M_45M_read_ids.txt \
-    | gzip -c > "$out_fastq"
-
+  # Grab just the reads in that region (names only)
+  samtools view -b "$bam" "$region" \
+    | samtools fastq \
+        -1 data/iPSC/Treatment.pair1.chr6.42M_45M.fastq.gz \
+        -2 data/iPSC/Treatment.pair2.chr6.42M_45M.fastq.gz \
+        -0 /dev/null  \
+        -n   # preserve original read names exactly
 #
 # Create small graph and different k and w min index files
   # Create range vcf file

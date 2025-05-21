@@ -1,8 +1,12 @@
-=== 2025-05-21 03:02:37 ===
-iPSC_K27 vg_giraffe chm13 3 4 '' k=9 w=4-> job_id:44109123
-iPSC_K27 vg_giraffe chm13 3 4 '' k=11 w=5-> job_id:44109124
-iPSC_K27 vg_giraffe chm13 3 4 '' k=13 w=6-> job_id:44109125
-iPSC_K27 vg_giraffe chm13 3 4 '' k=15 w=7-> job_id:44109126
+=== 2025-05-21 05:29:09 ===
+146 vg_giraffe chm13 7 inject k= w=-> job_id:44112251
+146 vg_giraffe chm13 7 '' k= w=-> job_id:44112249
+146 vg_giraffe vcfbub 7 '' k= w=-> job_id:44112250
+iPSC_K27 vg_giraffe vcfbub_chr6_42M_45M 3 4 '' k=9 w=4-> job_id:44112202
+iPSC_K27 vg_giraffe vcfbub_chr6_42M_45M 3 4 '' k=11 w=5-> job_id:44112204
+iPSC_K27 vg_giraffe vcfbub_chr6_42M_45M 3 4 '' k=13 w=6-> job_id:44112205
+iPSC_K27 vg_giraffe vcfbub_chr6_42M_45M 3 4 '' k=15 w=7-> job_id:44112203
+
 === 2025-05-16 00:40:59 ===
 146 vg_giraffe chm13 4 5 6 inject k= w=-> job_id:44020414
 === 2025-05-15 23:26:58 ===

@@ -3,10 +3,10 @@
 export wd=$(pwd)
 
 # Define parameters
-export mark_triple=("iPSC_K27 9 4" "iPSC_K27 11 5" "iPSC_K27 13 6" "iPSC_K27 15 7") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
+export mark_triple=("146") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
 pipeline=("vg_giraffe")       # vg_giraffe or vg_map
 ref=("chm13")               # e.g., chm13, L1_vcfbub, vcfbub, or hprc-v1.1-mc-chm13
-steps="3 4"             # Steps of the pipeline
+steps="7"             # Steps of the pipeline
         # Steps of the pipeline
             # 1. Construct the graph
             # 2. Split the graph
@@ -16,7 +16,7 @@ steps="3 4"             # Steps of the pipeline
             # 6. Call peaks + Callpeaks_whole_genome_from_p_values + Find linear
             # 7. Callpeaks_whole_genome_from_p_values + Find linear
       
-mapq_troubleshoot=("")        # mapq60 or inject or "" - for troubleshooting mapq
+mapq_troubleshoot=("inject")        # mapq60 or inject or "" - for troubleshooting mapq
 # # Export variables for the job (they will be available in the sbatch command)
 export pipeline ref steps mapq_edit inject
 

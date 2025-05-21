@@ -100,11 +100,11 @@ alignment() {                   # To map reads using vgmap
     cd $results_dir || exit
     alignments=()
     if [ "$pipeline" == "vg_giraffe" ]; then
-        if [ ! -f "$graph_dir/$graph_type.k$k.w$w.min" ]; then
-            vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k$k.w$w.min $graph_dir/$graph_type.gbz
+        if [ -n "$k" ] && [ ! -f "$graph_dir/$graph_type.k${k}w${w}.min" ]; then
+            vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k${k}w${w}.min $graph_dir/$graph_type.gbz
         fi
         for i in "${!forward[@]}"; do
-            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.k$k.w$w.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
+            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.k${k}w${w}.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
             alignments+=("${input}_alignments_$((i+1)).gam")
         done
         cat "${alignments[@]}" > ${input}_alignments.gam
@@ -288,7 +288,7 @@ EOL
                     graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
                 fi
                 graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-                graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+                graph_peak_caller peaks_to_linear \${chromosome}_all_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
             done
 
             echo_slurm \"Concatenate_sequence_files\"
@@ -391,7 +391,7 @@ chipseq_graph() {
         fi
         trm_json="treatment_alignments.filtered.json"
     else     
-        results_dir=$wd/results/${markname}/${pipeline}_${ref}
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${k}_${w}
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
             alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w

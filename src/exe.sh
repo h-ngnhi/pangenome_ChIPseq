@@ -53,8 +53,8 @@ input() {
     else
         if [ $markname == "iPSC_K27" ]; then
             data_dir=$wd/data/iPSC
-            forward_trm="$data_dir/Treatment1.trim.pair1.chr6.42M_45M.fastq.gz"
-            reverse_trm="$data_dir/Treatment1.trim.pair2.chr6.42M_45M.fastq.gz"
+            forward_trm="$data_dir/Treatment.pair1.chr6.42M_45M.fastq.gz"
+            reverse_trm="$data_dir/Treatment.pair2.chr6.42M_45M.fastq.gz"
             forward_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R1_001.fastq.gz"
             reverse_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz"
         fi
