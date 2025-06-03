@@ -6,12 +6,12 @@
 # BiocManager::install("clusterProfiler")
 
 library(ChIPseeker)
-library(clusterProfiler)
+# library(clusterProfiler)
 
-wd <- "/home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome"  
-files <- readPeakFile("146_design2_hg19/peak_call/146/ZNF146/all_intersection.hg19.600.bed")
+wd <- "/home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects"  
+files <- readPeakFile("results/K27_FLU/linear_chm13/peak_call/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC_peaks.narrowPeak.bed")
 files
-pdf(paste0(wd, "/plots/",Sys.Date(), ".coverage_146_19_L1_600_GenPipes.pdf"))
+pdf(paste0(wd, "/plots/",Sys.Date(), ".coverage_k27_FLU_linear.pdf"))
 covplot(files, weightCol="V5", xlab="Chromosome", ylab="Coverage")
 dev.off()
 

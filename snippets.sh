@@ -2,12 +2,99 @@
 
 # This file is to keep common snippets used but are not included in the pipeline
 
+############################################
+# Trim first 15 bases of reads
+  module load seqtk
+  dir=data/iPSC
+  seqtk trimfq -b 8 $dir/Treatment.pair1.chr6.42M_45M.fastq.gz \
+    | gzip -c > $dir/Treatment.pair1.chr6.42M_45M.15.fastq.gz
+  seqtk trimfq -b 8 $dir/Treatment.pair2.chr6.42M_45M.fastq.gz \
+    | gzip -c > $dir/Treatment.pair2.chr6.42M_45M.15.fastq.gz
+  seqtk trimfq -b 8 $dir/p_N_iPSC_Input_r1_S18_R1_001.fastq.gz \
+    | gzip -c > $dir/p_N_iPSC_Input_r1_S18_R1_001.15.fastq.gz
+  seqtk trimfq -b 8 $dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz \
+    | gzip -c > $dir/p_N_iPSC_Input_r1_S18_R2_001.15.fastq.gz
+
+################################################
+# For Source code: Find line of code in all files of the directory
+  grep -RIn --exclude="peaks_to_linear_matches.txt" \
+    "class" "$wd/tools/graph_peak_caller/" \
+    >> "$wd/tools/graph_peak_caller/peaks_to_linear_matches.txt"
+  grep -RIn --exclude="qvalues_matches.txt" "qvalue" \
+  "$wd/tools/graph_peak_caller/" \
+  > "$wd/tools/graph_peak_caller/qvalues_matches.txt"
+
+###################################################
+# Troubleshooting peaks_to_linear
+  find . -maxdepth 1 \
+  -type f \
+  -name "chr*_max_paths.intervalcollection" \
+  ! -name "chr*_all_max_paths.intervalcollection" \
+  -exec cat {} + \
+  > combined.nonmax_paths.intervalcol
+  mv combined.nonmax_paths.intervalcol max_peaks.intervalcollection
+
+  if cmp -s <(sort max_peaks.intervalcollection) <(sort all_peaks.intervalcollection); then
+    echo "Files are identical"
+  else
+    echo "Files differ"
+  fi
+
+
+    set -euo pipefail
+
+    # — adjust these to your actual paths —
+    LINEAR_PATH_FILE="$wd/Pangenomes/vg_giraffe/chm13/graphs/chr2_linear_path.interval"
+    INTERVAL_FILE="$wd/results/146/vg_giraffe_chm13/callpeaks/chr2_all_max_paths.intervalcollection"
+
+    # 1) Extract node IDs from the linear‐path file (assumes node IDs are in column 1)
+    cut -f1 "$LINEAR_PATH_FILE" > $wd/part_results/troubleshoot_peaks_to_linear/linear_nodes.txt
+
+    # 2) Convert that to a JSON array for jq
+    LINEAR_NODES_JSON=$(jq -Rs '
+      split("\n")[:-1]      # drop trailing empty line
+      | map(tonumber)       # convert each to number
+    ' $wd/part_results/troubleshoot_peaks_to_linear/linear_nodes.txt)
+
+    # 3) Loop through each interval and test intersection
+    while IFS= read -r line; do
+      # pull out the region_paths array and chromosome
+      REGION_PATHS=$(jq -c '.region_paths'    <<<"$line")
+      CHR=$(jq -r     '.chromosome // "null"' <<<"$line")
+
+      # compute intersection: keep only rp elements present in linear nodes
+      INTERSECT=$(jq -n \
+        --argjson rp "$REGION_PATHS" \
+        --argjson lp "$LINEAR_NODES_JSON" \
+        '$rp | map(select(IN($lp[])))'
+      )
+
+      # if empty, this is the one that would trigger the IndexError
+      if [ "$(jq 'length' <<<"$INTERSECT")" -eq 0 ]; then
+        echo " No linear overlap for interval (chrom=$CHR): $line"
+      fi
+    done < "$INTERVAL_FILE"
+
+  # Check if max_peaks.intervalcollection part of all_max_peaks.intervalcollection
+  jq -c '{start, end, region_paths}' max_peaks.intervalcollection \
+    | sort \
+    > max_norm.json
+
+  jq -c '{start, end, region_paths}' all_max_peaks.intervalcollection \
+    | sort \
+    > all_norm.json
+
+  comm -12 max_norm.json all_norm.json  > in_both.json
+  comm -23 max_norm.json all_norm.json  > only_in_max.json
+  comm -13 max_norm.json all_norm.json  > only_in_all.json
+
+
 ###################################################
 # Access change in MAPQ=0 reads when moving from linear to graph (Excel)
 # Input BAM files
-  linear_bam="$wd/results/146/vg_giraffe_chm13/treatment_alignments.bam"
-  graph_bam="$wd/results/146/vg_giraffe_vcfbub/treatment_alignments.bam"
-  result_dir="$wd/part_results/current"
+  linear_bam="$wd/results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.bam"
+  graph_bam="$wd/results/K27_FLU/vg_giraffe_chm13/treatment_alignments.bam"
+  result_dir="$wd/part_results/compare_reads_K27_FLU"
   cd $result_dir || exit
   module load samtools
 
@@ -61,6 +148,53 @@
   compare_bins mapq30_59
   compare_bins mapq60
 
+###########################################
+  # Continue to compare their location
+  result_dir="$wd/part_results/compare_reads_146"
+  cd $result_dir || exit
+  module load samtools
+  label=mapq60
+  linear_bam="$wd/results/146/linear_chm13/alignment/146/ZNF146/146.ZNF146.sorted.dup.bam"
+  graph_bam="$wd/results/146/vg_giraffe_chm13/treatment_alignments.bam"
+  # 1a) Extract only those read‐names from the linear BAM
+  samtools view -b -N common_${label}.txt $linear_bam \
+    > linear_common_${label}.bam
+
+  # 1b) Do the same for the graph‐aligned BAM
+  samtools view -b -N common_${label}.txt $graph_bam \
+    > graph_common_${label}.bam
+
+  # 2a) Extract “readName chr pos” from the linear_common BAM
+  samtools view linear_common_${label}.bam \
+    | awk '{ print $1"\t"$3"\t"$4 }' \
+    | sort -k1,1 \
+    > linear_locations_${label}.txt
+
+  # 2b) Do the same for graph_common BAM
+  samtools view graph_common_${label}.bam \
+    | awk '{ print $1"\t"$3"\t"$4 }' \
+    | sort -k1,1 \
+    > graph_locations_${label}.txt
+
+  # 3) Join the two files on readName
+  join -t $'\t' -1 1 -2 1 \
+     linear_locations_${label}.txt \
+     graph_locations_${label}.txt \
+  > joined_locs_${label}.txt
+
+  # 4) Count exact‐matches vs. mismatches
+  awk -F'\t' '
+    {
+      if ($2 == $4 && $3 == $5)   exact++
+      else if ($2 != $4)         diff_chr++
+      else if ($2 == $4 && $3 != $5) diff_pos++
+    }
+    END {
+      print "Exact matches:", exact
+      print "Different chr:", diff_chr
+      print "Same chr but different pos:", diff_pos
+    }
+  ' joined_locs_${label}.txt
 ###########################################
 # See how many hits per seed per read
 # Cannot work this way, change strategy to vg autoindex to construct the graph again
@@ -123,14 +257,14 @@
 
 ###########################################
 # Create small dataset (aligned fastq) in the chosen range
-  bam="results/iPSC_K27/linear_chm13/alignment/iPSC_K27/iPSC_K27/iPSC_K27.iPSC_K27.sorted.bam"
+  bam="results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.bam"
   region="chr6:42000000-45000000"
-
+  samtools view -b "$bam" "$region" > "results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.chr6.42M_45M.bam"
   # Grab just the reads in that region (names only)
   samtools view -b "$bam" "$region" \
     | samtools fastq \
-        -1 data/iPSC/Treatment.pair1.chr6.42M_45M.fastq.gz \
-        -2 data/iPSC/Treatment.pair2.chr6.42M_45M.fastq.gz \
+        -1 data/cgroza_data/H3K27AC_FLU/treatment/Treatment.pair1.chr6.42M_45M.fastq.gz \
+        -2 data/cgroza_data/H3K27AC_FLU/treatment/Treatment.pair2.chr6.42M_45M.fastq.gz \
         -0 /dev/null  \
         -n   # preserve original read names exactly
 #

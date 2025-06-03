@@ -1,7 +1,6 @@
 #!/bin/bash 
 
 export wd=$(pwd)
-
 # Define parameters
 export mark_triple=("146") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
 pipeline=("vg_giraffe")       # vg_giraffe or vg_map
@@ -16,19 +15,17 @@ steps="7"             # Steps of the pipeline
             # 6. Call peaks + Callpeaks_whole_genome_from_p_values + Find linear
             # 7. Callpeaks_whole_genome_from_p_values + Find linear
       
-mapq_troubleshoot=("inject")        # mapq60 or inject or "" - for troubleshooting mapq
+mapq_troubleshoot=("")        # mapq60 or inject or "" - for troubleshooting mapq
 # # Export variables for the job (they will be available in the sbatch command)
-export pipeline ref steps mapq_edit inject
+export pipeline ref steps mapq_troubleshoot
 
 # Name of the log file
-LOG_FILE="$wd/pangenome_ChIPseq/april_2025.txt"
+LOG_FILE="$wd/pangenome_ChIPseq/april_june_2025.txt"
 TEMP_LOG="$wd/pangenome_ChIPseq/temp_job_log.txt"
 
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" > "$TEMP_LOG"
-
 # Use GNU Parallel to submit up to 5 jobs concurrently.
 # Use double quotes in the parallel command so variables get expanded.
-
 parallel -j5 --linebuffer "
     IFS=' ' read mark k w <<< {1};
     JOB_OUT=\$(sbatch -J chipseq_\${mark}_{2}_{3} \$wd/pangenome_ChIPseq/src/exe.sh \$mark {2} {3} \"\$steps\" {4} \$k \$w)
@@ -55,7 +52,7 @@ rm "$TEMP_LOG"
 # vg find -x Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz -p chr12:1500-2500 -E
 
 # Access MAPQ GenPipes
-# chipseq_gp iPSC_K27 $wd/results/iPSC_K27 "-s 4-15"
+# chipseq_gp K27_FLU $wd/results/K27_FLU "-f"
 # prim_bam results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.bam
 # align_stats results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.filtered.cleaned.bam
 

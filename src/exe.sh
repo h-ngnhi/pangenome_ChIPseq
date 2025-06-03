@@ -2,7 +2,7 @@
 #SBATCH --output=slurm-%j.out  # %j will be replaced with the job ID
 #SBATCH --error=slurm-%j.err   # %j will be replaced with the job ID
 #SBATCH --account=def-bourqueg
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=249G
 #SBATCH --cpus-per-task=64
 
@@ -23,7 +23,7 @@ export wd=$(pwd)
 # Get input data
 input() {
     local markname=$1
-    if [ -z "$k" ]; then
+    if [ -z "$k" ]; then 
         if [ $markname == "K27_FLU" ]; then
             data_dir=$wd/results/K27_FLU/linear_chm13/trim
             forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.pair1.fastq.gz"
@@ -50,13 +50,19 @@ input() {
         #     forward_ctl="$data_dir/Input.trim.pair1.fastq.gz"
         #     reverse_ctl="$data_dir/Input.trim.pair2.fastq.gz"
         # fi
-    else
+    else # Use smaller dataset to test for k and w, no need to care about alignment of control
         if [ $markname == "iPSC_K27" ]; then
             data_dir=$wd/data/iPSC
-            forward_trm="$data_dir/Treatment.pair1.chr6.42M_45M.fastq.gz"
-            reverse_trm="$data_dir/Treatment.pair2.chr6.42M_45M.fastq.gz"
-            forward_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R1_001.fastq.gz"
-            reverse_ctl="$data_dir/p_N_iPSC_Input_r1_S18_R2_001.fastq.gz"
+            forward_trm="$data_dir/Treatment.pair1.chr6.42M_45M.8.fastq.gz"
+            reverse_trm="$data_dir/Treatment.pair2.chr6.42M_45M.8.fastq.gz"
+            forward_ctl=""
+            reverse_ctl=""
+        elif [ $markname == "K27_FLU" ]; then
+            data_dir=$wd/results/K27_FLU/linear_chm13/trim
+            forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair1.chr6.42M_45M.15.fastq.gz"
+            reverse_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair2.chr6.42M_45M.15.fastq.gz"
+            forward_ctl=""
+            reverse_ctl=""
         fi
     fi
 }

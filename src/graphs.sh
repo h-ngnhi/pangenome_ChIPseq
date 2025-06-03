@@ -288,7 +288,7 @@ EOL
                     graph_peak_caller find_linear_path -g \$graph_dir/\$chromosome.nobg \$graph_dir/\$chromosome.json \$chromosome \$graph_dir/\${chromosome}_linear_path.interval
                 fi
                 graph_peak_caller callpeaks_whole_genome_from_p_values -d \$graph_dir/ -n \"\" -f \$fragment_length -r \$read_length \$chromosome
-                graph_peak_caller peaks_to_linear \${chromosome}_all_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
+                graph_peak_caller peaks_to_linear \${chromosome}_max_paths.intervalcollection \$graph_dir/\${chromosome}_linear_path.interval \$chromosome \${chromosome}_linear_peaks.bed
             done
 
             echo_slurm \"Concatenate_sequence_files\"
@@ -390,8 +390,12 @@ chipseq_graph() {
             inject $markname $ref
         fi
         trm_json="treatment_alignments.filtered.json"
-    else     
-        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${k}_${w}
+    else
+        if [ -z "$k" ]; then   
+            results_dir=$wd/results/${markname}/${pipeline}_${ref}   
+        else
+            results_dir=$wd/results/${markname}/${pipeline}_${ref}_${k}_${w}
+        fi
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
             alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w
