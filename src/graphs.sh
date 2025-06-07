@@ -85,6 +85,30 @@ graph_bam() {
     cd $wd || exit
 }
 
+align() {
+    local graph_dir=$1        # path to graph directory
+    local graph_type=$2        # basename of graph
+    local min_file=$3        # full path to .min file
+    local input=$4        # prefix for output
+    local fwd_name=$5        # e.g. forward[@]
+    local rev_name=$6        # e.g. reverse[@]
+    local extra_opt=$7        # any extra vg giraffe flags
+    
+    # bind namerefs
+    declare -n forward="$fwd_name"
+    declare -n reverse="$rev_name"
+    alignments=()
+    for i in "${!forward[@]}"; do
+        if [ -z "$graph_type" ] && [ -z "$min_file" ]; then
+            vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f ${forward[i]} -f ${reverse[i]} -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
+        else
+            vg giraffe -Z $graph_dir/$graph_type.gbz -m $min_file -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 $extra_opt > ${input}_alignments_$((i+1)).gam
+        fi
+        alignments+=("${input}_alignments_$((i+1)).gam")
+    done
+    cat "${alignments[@]}" > ${input}_alignments.gam
+}
+
 alignment() {                   # To map reads using vgmap
     local pipeline=$1       # vg_giraffe or vg_map
     local graph_type=$2     # chm13 or vcfbub
@@ -95,26 +119,26 @@ alignment() {                   # To map reads using vgmap
     local graph_dir=$wd/Pangenomes/$pipeline/$graph_type
     local k=$7
     local w=$8
+    local cap=$9            # hard hit cap, default is 500, can be set to more
     
     mkdir -p $results_dir
     cd $results_dir || exit
     alignments=()
     if [ "$pipeline" == "vg_giraffe" ]; then
-        if [ -n "$k" ] && [ ! -f "$graph_dir/$graph_type.k${k}w${w}.min" ]; then
-            vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k${k}w${w}.min $graph_dir/$graph_type.gbz
+        if [ -n "$cap" ]; then
+                extra_option="--hard-hit-cap $cap"
         fi
-        for i in "${!forward[@]}"; do
-            vg giraffe -Z $graph_dir/$graph_type.gbz -m $graph_dir/$graph_type.k${k}w${w}.min -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 > ${input}_alignments_$((i+1)).gam
-            alignments+=("${input}_alignments_$((i+1)).gam")
-        done
-        cat "${alignments[@]}" > ${input}_alignments.gam
+        if [ -n "$k" ]; then
+            if [ ! -f "$graph_dir/$graph_type.k${k}w${w}.min" ]; then
+                vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k${k}w${w}.min $graph_dir/$graph_type.gbz
+            fi
+            align $graph_dir $graph_type $graph_dir/$graph_type.k${k}w${w}.min $input forward[@] reverse[@] "$extra_option"
+        else
+            align $graph_dir $graph_type $graph_dir/$graph_type.min $input forward[@] reverse[@] "$extra_option"
+        fi
         vg surject -x $graph_dir/$graph_type.gbz -b ${input}_alignments.gam > ${input}_alignments.bam
     elif [ "$pipeline" == "vg_map" ]; then
-        for i in "${!forward[@]}"; do
-            vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f ${forward[i]} -f ${reverse[i]} -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
-            alignments+=("${input}_alignments_$((i+1)).gam")
-        done
-        cat "${alignments[@]}" > ${input}_alignments.gam
+        align $graph_dir "" "" $input forward[@] reverse[@]
         vg surject -x $graph_dir/graph.xg -b ${input}_alignments.gam > ${input}_alignments.bam
     fi
     vg filter ${input}_alignments.gam -P -fu -q 30 -t 64 > ${input}_alignments.filtered.gam
@@ -354,7 +378,7 @@ chipseq_graph() {
             # 6. Call peaks
             # 7. Callpeaks_whole_genome_from_p_values + Find linear
       
-    # Construct graphs
+    # 1. Construct graphs
     if [[ " $steps " =~ 1 ]]; then
         variant_vcf=$wd/Graph_genome_data/hprc-v1.1-mc-chm13.vcfbub.a100k.wave.vcf.gz
         backbone=$wd/Graph_genome_data/chm13v2.0.fa
@@ -362,7 +386,7 @@ chipseq_graph() {
         $func $variant_vcf $backbone $pipeline
     fi
 
-    # Split the graph
+    # 2. Split the graph
     if [[ " $steps " =~ 2 ]]; then
         split_graph $pipeline $ref $wd/tools/gp.sif
     fi
@@ -371,7 +395,7 @@ chipseq_graph() {
     input $markname
     
     # Identify results directory for each edit (mapq60, inject, or just normal run "")
-    # Alignment if step=3
+    # 3. Alignment if step=3
     if [ "$mapq_troubleshoot" == "mapq60" ]; then
         results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}
         mkdir -p $results_dir
@@ -391,16 +415,22 @@ chipseq_graph() {
         fi
         trm_json="treatment_alignments.filtered.json"
     else
-        if [ -z "$k" ]; then   
-            results_dir=$wd/results/${markname}/${pipeline}_${ref}   
-        else
-            results_dir=$wd/results/${markname}/${pipeline}_${ref}_${k}_${w}
+        base="$wd/results/${markname}/${pipeline}_${ref}"
+        suffix=""
+        if [[ $mapq_troubleshoot =~ ^hard_hit_cap[[:space:]]+([0-9]+)$ ]]; then
+            cap="${BASH_REMATCH[1]}"
+            mapq_troubleshoot="hard_hit_cap"
+            suffix+="_${mapq_troubleshoot}_${cap}"
         fi
+        if [[ -n "$k" ]]; then
+        suffix+="_${k}_${w}"
+        fi
+        results_dir="${base}${suffix}"
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
-            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w
+            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w $cap
             if [ -n "$forward_ctl" ]; then
-                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $k $w
+                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $k $w $cap
             fi
         fi
         trm_json="treatment_alignments.filtered.json"

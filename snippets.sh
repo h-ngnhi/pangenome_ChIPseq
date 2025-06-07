@@ -41,40 +41,6 @@
   fi
 
 
-    set -euo pipefail
-
-    # — adjust these to your actual paths —
-    LINEAR_PATH_FILE="$wd/Pangenomes/vg_giraffe/chm13/graphs/chr2_linear_path.interval"
-    INTERVAL_FILE="$wd/results/146/vg_giraffe_chm13/callpeaks/chr2_all_max_paths.intervalcollection"
-
-    # 1) Extract node IDs from the linear‐path file (assumes node IDs are in column 1)
-    cut -f1 "$LINEAR_PATH_FILE" > $wd/part_results/troubleshoot_peaks_to_linear/linear_nodes.txt
-
-    # 2) Convert that to a JSON array for jq
-    LINEAR_NODES_JSON=$(jq -Rs '
-      split("\n")[:-1]      # drop trailing empty line
-      | map(tonumber)       # convert each to number
-    ' $wd/part_results/troubleshoot_peaks_to_linear/linear_nodes.txt)
-
-    # 3) Loop through each interval and test intersection
-    while IFS= read -r line; do
-      # pull out the region_paths array and chromosome
-      REGION_PATHS=$(jq -c '.region_paths'    <<<"$line")
-      CHR=$(jq -r     '.chromosome // "null"' <<<"$line")
-
-      # compute intersection: keep only rp elements present in linear nodes
-      INTERSECT=$(jq -n \
-        --argjson rp "$REGION_PATHS" \
-        --argjson lp "$LINEAR_NODES_JSON" \
-        '$rp | map(select(IN($lp[])))'
-      )
-
-      # if empty, this is the one that would trigger the IndexError
-      if [ "$(jq 'length' <<<"$INTERSECT")" -eq 0 ]; then
-        echo " No linear overlap for interval (chrom=$CHR): $line"
-      fi
-    done < "$INTERVAL_FILE"
-
   # Check if max_peaks.intervalcollection part of all_max_peaks.intervalcollection
   jq -c '{start, end, region_paths}' max_peaks.intervalcollection \
     | sort \
@@ -92,8 +58,8 @@
 ###################################################
 # Access change in MAPQ=0 reads when moving from linear to graph (Excel)
 # Input BAM files
-  linear_bam="$wd/results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.bam"
-  graph_bam="$wd/results/K27_FLU/vg_giraffe_chm13/treatment_alignments.bam"
+  LINEAR_BAM="$wd/results/K27_FLU/linear_chm13/alignment/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC.sorted.dup.bam"
+  GRAPH_BAM="$wd/results/K27_FLU/vg_giraffe_chm13/treatment_alignments.bam"
   result_dir="$wd/part_results/compare_reads_K27_FLU"
   cd $result_dir || exit
   module load samtools
@@ -154,16 +120,27 @@
   cd $result_dir || exit
   module load samtools
   label=mapq60
-  linear_bam="$wd/results/146/linear_chm13/alignment/146/ZNF146/146.ZNF146.sorted.dup.bam"
-  graph_bam="$wd/results/146/vg_giraffe_chm13/treatment_alignments.bam"
+  LINEAR_BAM="$wd/results/146/linear_chm13/alignment/146/ZNF146/146.ZNF146.sorted.dup.bam"
+  GRAPH_BAM="$wd/results/146/vg_giraffe_chm13/treatment_alignments.bam"
   # 1a) Extract only those read‐names from the linear BAM
-  samtools view -b -N common_${label}.txt $linear_bam \
-    > linear_common_${label}.bam
+  samtools view -b \
+    -N <(
+      comm -12 \
+        <(samtools view -F 2304 -q60 "$LINEAR_BAM" | cut -f1 | sort -u) \
+        <(samtools view -F 2304 -q60 "$GRAPH_BAM"  | cut -f1 | sort -u)
+    ) \
+    "$LINEAR_BAM" \
+    > linear_common_mapq60.bam
 
-  # 1b) Do the same for the graph‐aligned BAM
-  samtools view -b -N common_${label}.txt $graph_bam \
-    > graph_common_${label}.bam
-
+  samtools view -b \
+    -N <(
+      comm -12 \
+        <(samtools view -F 2304 -q60 "$LINEAR_BAM" | cut -f1 | sort -u) \
+        <(samtools view -F 2304 -q60 "$GRAPH_BAM"  | cut -f1 | sort -u)
+    ) \
+    "$GRAPH_BAM" \
+    > graph_common_mapq60.bam
+    
   # 2a) Extract “readName chr pos” from the linear_common BAM
   samtools view linear_common_${label}.bam \
     | awk '{ print $1"\t"$3"\t"$4 }' \
