@@ -1,7 +1,116 @@
 #!/bin/bash
 
 # This file is to keep common snippets used but are not included in the pipeline
+###########################################
+json=Pangenomes/vg_giraffe/vcfbub/graphs_chunks/chr1.json
+head -c 50 Pangenomes/vg_giraffe/vcfbub/graphs/_0_GRCh38#0#chr1#0_0_248177868.json
+grep -oP 'node.{0,50}' $json | head -n 1
+comm -23 Pangenomes/vg_giraffe/vcfbub/graphs/_0_GRCh38#0#chr1#0_0_248177868_ids.txt Pangenomes/vg_giraffe/vcfbub/graphs_chunks/chr1_ids.txt > Pangenomes/vg_giraffe/vcfbub/graphs_chunks/check_chr1_ids.txt
 
+json=Pangenomes/vg_giraffe/vcfbub/graphs/_0_GRCh38#0#chr1#0_0_248177868.json
+grep -oP '{"id": *"[^"]+", *"sequence": *"[^"]+"}' $json | \
+    sed -E 's/.*"id": *"([^"]+)", *"sequence": *"([^"]+)".*/\1\t\2/' > Pangenomes/vg_giraffe/vcfbub/graphs/_0_GRCh38nodes_seq.tsv
+
+awk 'NR==FNR {ids[$1]; next} { if ($1 in ids) print }' \
+  Pangenomes/vg_giraffe/vcfbub/graphs/unique_chr1_ids_GRCh38vschunk.txt \
+  all_nodes.tsv > \
+  Pangenomes/vg_giraffe/vcfbub/graphs/unique_chr1_ids_GRCh38vschunk.seq.txt
+
+
+###########################################
+# Compare reads location between linear and graph
+    LINEAR_BAM="$wd/results/146/linear_chm13/alignment/146/ZNF146/146.ZNF146.sorted.dup.bam"
+    GRAPH_BAM="$wd/results/146/vg_giraffe_chm13/treatment_alignments.bam"
+    result_dir="$wd/part_results/compare_reads_146"
+    cd $result_dir || exit
+    module load samtools
+
+
+  # 1) Extract tuples from the linear BAM
+
+  (
+    # mate 1 (“fw”), primary only (-F 2304), MAPQ ≥ 60
+    samtools view -f 64 -F 2304 -q 60 $LINEAR_BAM \
+      | awk '{ print $1 "\tfw\t" $3 "\t" $4 }'
+    # mate 2 (“rv”)
+    samtools view -f 128 -F 2304 -q 60 $LINEAR_BAM \
+      | awk '{ print $1 "\trv\t" $3 "\t" $4 }'
+  ) | sort -k1,1 -k2,2 -k3,3 -k4,4 -u > linear.info
+  # 2) Do the same for the graph BAM
+
+    samtools view -F 2304 -q 60 $GRAPH_BAM \
+      | awk '{ print $1 "\t" $3 "\t" $4 }'| sort  -k1,1 -k2,2 -k3,3 -u > graph.info
+
+
+  # 3) Take the lines common to both
+  join -t $'\t' \
+    <( awk -F'\t' '{ key=$1 "|" $3; print key "\t" $0 }' linear.info | sort ) \
+    <( awk -F'\t' '{ key=$1 "|" $2; print key "\t" $0 }' graph.info  | sort ) |
+  awk -F'\t' '
+      ($4 == $7) {                       # keep only same-chromosome matches
+          # fields after join:
+          #   $1 = "QNAME|CHR"
+          #   $2 = QNAME      (linear)
+          #   $3 = mate       ("fw"/"rv")
+          #   $4 = CHR        (linear)
+          #   $5 = POS_linear
+          #   $6 = QNAME      (graph)
+          #   $7 = CHR_graph
+          #   $8 = POS_graph
+          delta = $5 - $8
+          print $2, $3, $4, $5, delta
+      }
+  ' OFS='\t' > common.info
+  wc -l common.info
+
+  awk -F'\t' '
+  {
+      abs = ($5 < 0 ? -$5 : $5)        # |Δ| of current line
+
+      if (prev_q == $1 && prev_m == $2) {
+          # We have a pair (two lines in a row with same read + mate)
+          if (abs < prev_abs) {
+              print $0                 # current one is better
+          } else {
+              print prev_line          # previous one is better
+          }
+          keep_prev = 0                # pair handled; don’t re-print
+      } else {
+          # New QNAME/mate; first write out the stored line (if any)
+          if (keep_prev) print prev_line
+          prev_line = $0
+          prev_q    = $1
+          prev_m    = $2
+          prev_abs  = abs
+          keep_prev = 1
+      }
+  }
+  END {
+      if (keep_prev) print prev_line   # flush last unpaired line
+  }'  common.info > common.fixed
+
+  awk '
+  { cnt[$1]++ }                       # bump counter for each read name
+  END {
+      for (q in cnt) {
+          if (cnt[q] == 1) n1++
+          else if (cnt[q] == 2) n2++
+          else if (cnt[q] == 3) n3++
+          else if (cnt[q] == 4) n4++
+      }
+      printf "Read names appearing exactly 1× : %d\n", n1+0
+      printf "Read names appearing exactly 2× : %d\n", n2+0
+      printf "Read names appearing exactly 3× : %d\n", n3+0
+      printf "Read names appearing exactly 4× : %d\n", n4+0
+  }' linear.info
+
+  # Count how many 0 in column 5
+  awk -F'\t' '$5 == 0 { n++ } END { print n }' common.fixed
+
+  # Extract non-zero Δ rows and sort them descending by column 5
+  awk -F'\t' '$5 != 0'  common.fixed |
+      sort -t$'\t' -k5,5nr  > diff_loc.info
+  awk -F'\t' '($5 >= -50 && $5 <= 50) { n++ } END { print n }' diff_loc.info
 ############################################
 # Trim first 15 bases of reads
   module load seqtk
@@ -55,6 +164,36 @@
   comm -13 max_norm.json all_norm.json  > only_in_all.json
 
 
+###################################################
+# Bin peaks to see if high score peaks in linear detected in graph
+  cd part_results/bin_peaks_K27_FLU/vcfbub
+  module load bedtools
+  linear_bed=$wd/results/K27_FLU/linear_chm13/peak_call/H3K27AC_treatment1/H3K27AC/H3K27AC_treatment1.H3K27AC_peaks.narrowPeak.bed
+  graph_peak=$wd/results/K27_FLU/vg_giraffe_vcfbub_17_7/callpeaks/all_linear_peaks.bed
+  # Add bin labels from 1 (highest scores) to 10 (lowest scores)
+  awk '{
+      score=$5;  # assuming score is in column 5
+      if (score > 100) bin="bin1";
+      else if (score > 50 && score <= 100) bin="bin2";
+      else if (score > 20 && score <= 50) bin="bin3";
+      else bin="bin4";
+      print $0 "\t" bin;
+  }' $linear_bed > linear_peaks_binned.bed
+
+  for bin in bin1 bin2 bin3 bin4; do
+      # grep "${bin}$" linear_peaks_binned.bed > ${bin}.bed
+      bedtools intersect -u -a $graph_peak -b ${bin}.bed > graph_${bin}_intersect.bed
+      echo "${bin}: $(wc -l < graph_${bin}_intersect.bed) intersected / $(wc -l < ${bin}.bed) total"
+  done
+###################################################
+# Determine polymorphic peaks
+  graph=Pangenomes/vg_giraffe/vcfbub/graphs_backbone
+  
+
+  perl -nE 'while (/"id": *"([^"]*)"/g) { say $1 }' Pangenomes/vg_giraffe/vcfbub/graphs/chr1.json | sed 's/"id": *"//;s/"$//' > Pangenomes/vg_giraffe/vcfbub/graphs/chr1_ids.txt
+
+
+comm -13 <(sort -n Pangenomes/vg_giraffe/vcfbub/graphs/chr1_ids.txt | uniq) <(sort -n Pangenomes/vg_giraffe/vcfbub/graphs_withpath/_0_GRCh38#0#chr1#0_0_248177868_ids.txt | uniq) > Pangenomes/vg_giraffe/vcfbub/polymorphic_ids.txt
 ###################################################
 # Access change in MAPQ=0 reads when moving from linear to graph (Excel)
 # Input BAM files
@@ -114,7 +253,22 @@
   compare_bins mapq30_59
   compare_bins mapq60
 
-###########################################
+  ########################################
+    (
+    # mate 1 (“fw”), primary only (-F 2304), MAPQ ≥ 60
+    samtools view -f 64 -F 2304 -q 60 $LINEAR_BAM \
+      | awk '{ print $1 "\tfw\t" $3 "\t" $4 }'
+    # mate 2 (“rv”)
+    samtools view -f 128 -F 2304 -q 60 $LINEAR_BAM \
+      | awk '{ print $1 "\trv\t" $3 "\t" $4 }'
+     ) | sort -u > linear.info
+     # 2) Do the same for the graph BAM
+
+    samtools view -F 2304 -q 60 $GRAPH_BAM \
+      | awk '{ print $1 "\t" $3 "\t" $4 }'| sort -u > graph.info
+
+
+ ###########################################
   # Continue to compare their location
   result_dir="$wd/part_results/compare_reads_146"
   cd $result_dir || exit

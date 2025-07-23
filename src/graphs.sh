@@ -87,16 +87,14 @@ graph_bam() {
 
 align() {
     local graph_dir=$1        # path to graph directory
-    local graph_type=$2        # basename of graph
-    local min_file=$3        # full path to .min file
+    local graph_type=$2        # basename of graph, empty "" if using vg_map
+    local min_file=$3        # full path to .min file, empty "" if using vg_map
     local input=$4        # prefix for output
-    local fwd_name=$5        # e.g. forward[@]
-    local rev_name=$6        # e.g. reverse[@]
+    local forward=("$5")        
+    local reverse=("$6")        
     local extra_opt=$7        # any extra vg giraffe flags
     
-    # bind namerefs
-    declare -n forward="$fwd_name"
-    declare -n reverse="$rev_name"
+    
     alignments=()
     for i in "${!forward[@]}"; do
         if [ -z "$graph_type" ] && [ -z "$min_file" ]; then
@@ -113,13 +111,14 @@ alignment() {                   # To map reads using vgmap
     local pipeline=$1       # vg_giraffe or vg_map
     local graph_type=$2     # chm13 or vcfbub
     local results_dir=$3    # result directory
-    local forward=($4)      # Array of forward reads
-    local reverse=($5)      # Array of reverse reads
+    local forward=("$4")      # Array of forward reads
+    local reverse=("$5")      # Array of reverse reads
     local input=$6          # treatment or control
     local graph_dir=$wd/Pangenomes/$pipeline/$graph_type
-    local k=$7
-    local w=$8
-    local cap=$9            # hard hit cap, default is 500, can be set to more
+    local mapq_filter=$7
+    local k=$8
+    local w=$9
+    local cap=${10}            # hard hit cap, default is 500, can be set to more
     
     mkdir -p $results_dir
     cd $results_dir || exit
@@ -132,16 +131,16 @@ alignment() {                   # To map reads using vgmap
             if [ ! -f "$graph_dir/$graph_type.k${k}w${w}.min" ]; then
                 vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k${k}w${w}.min $graph_dir/$graph_type.gbz
             fi
-            align $graph_dir $graph_type $graph_dir/$graph_type.k${k}w${w}.min $input forward[@] reverse[@] "$extra_option"
+            align $graph_dir $graph_type $graph_dir/$graph_type.k${k}w${w}.min $input "${forward[@]}" "${reverse[@]}" "$extra_option"
         else
-            align $graph_dir $graph_type $graph_dir/$graph_type.min $input forward[@] reverse[@] "$extra_option"
+            align $graph_dir $graph_type $graph_dir/$graph_type.min $input "${forward[@]}" "${reverse[@]}" "$extra_option"
         fi
         vg surject -x $graph_dir/$graph_type.gbz -b ${input}_alignments.gam > ${input}_alignments.bam
     elif [ "$pipeline" == "vg_map" ]; then
-        align $graph_dir "" "" $input forward[@] reverse[@]
+        align $graph_dir "" "" $input "${forward[@]}" "${reverse[@]}"
         vg surject -x $graph_dir/graph.xg -b ${input}_alignments.gam > ${input}_alignments.bam
     fi
-    vg filter ${input}_alignments.gam -P -fu -q 30 -t 64 > ${input}_alignments.filtered.gam
+    vg filter ${input}_alignments.gam -P -fu -q $mapq_filter -t 64 > ${input}_alignments.filtered.gam
     vg view -aj ${input}_alignments.filtered.gam > ${input}_alignments.filtered.json
     if [ "$input" == "treatment" ]; then
         graph_bam $results_dir ${forward[1]}
@@ -167,6 +166,17 @@ split_graph() {                         # To split graphs by chromosomes for GP
             chr_name=$(vg paths -L -x $file | head -n 1)
             mv $file $graph_dir/graphs/${chr_name}.vg
         done
+
+        # range_dir=$wd/Pangenomes/vg_giraffe/vcfbub/graphs
+        # graph_dir=$wd/Pangenomes/vg_giraffe/vcfbub/graphs_full
+        # for file in $range_dir/node_range_chr*.txt; do
+        #     chr=$(basename "$file" | sed 's/node_range_\(chr.*\).txt/\1/')
+        #     # Each file is expected to have one line with N:M
+        #     range=$(cat "$file")
+        #     # Run vg chunk with this range
+        #     echo "Extracting $chr (range $range)..."
+        #     vg chunk -x "$wd/Pangenomes/vg_giraffe/vcfbub/vcfbub.gbz" -r "$range" > "$graph_dir/${chr}.vg"
+        # done
     fi
 
     graph_dir=$graph_dir/graphs
@@ -326,14 +336,15 @@ EOL
 
 # Editing MAPQ for giraffe distribution
 edit_mapq() {
-    local markname=$1
-    local pipeline=$2
-    local ref=$3
+    local results_dir=$1
+    local markname=$2
+    local pipeline=$3
+    local ref=$4
+    local mapq_filter=$5
 
-    local results_dir=$wd/results/$markname/${pipeline}_${ref}
-    vg filter ${results_dir}/treatment_alignments.gam -P -fu -q 5 -t 64 > ${results_dir}_mapq60/treatment_alignments.mapq5.gam
-    vg view -aj ${results_dir}_mapq60/treatment_alignments.mapq5.gam > ${results_dir}_mapq60/treatment_alignments.mapq5.json
-    perl -pe 's/("mapping_quality":\s*)\d+/${1}60/g' "${results_dir}_mapq60/treatment_alignments.mapq5.json" > "${results_dir}_mapq60/treatment_alignments.edited.json"
+    vg filter ${results_dir}/treatment_alignments.gam -P -fu -q $mapq_filter -t 64 > ${results_dir}_mapq60/treatment_alignments.mapq${mapq_filter}.gam
+    vg view -aj ${results_dir}_mapq60/treatment_alignments.mapq${mapq_filter}.gam > ${results_dir}_mapq60/treatment_alignments.mapq${mapq_filter}.json
+    perl -pe 's/("mapping_quality":\s*)\d+/${1}60/g' "${results_dir}_mapq60/treatment_alignments.mapq${mapq_filter}.json" > "${results_dir}_mapq60/treatment_alignments.edited.json"
     wc -l ${results_dir}_mapq60/treatment_alignments.edited.json
     if ! ls ${results_dir}_mapq60/control_alignments.filtered.json > /dev/null 2>&1; then
         cp $results_dir/control_alignments.filtered.json ${results_dir}_mapq60
@@ -366,8 +377,9 @@ chipseq_graph() {
     local ref=$3
     local steps=$4
     local mapq_troubleshoot=$5
-    local k=$6
-    local w=$7
+    local mapq_filter=$6
+    local k=$7
+    local w=$8
 
         # Steps of the pipeline
             # 1. Construct the graph
@@ -396,18 +408,25 @@ chipseq_graph() {
     
     # Identify results directory for each edit (mapq60, inject, or just normal run "")
     # 3. Alignment if step=3
+    suffix=""
+    if [ "$mapq_filter" != "30" ]; then
+        suffix+="_mqfilter${mapq_filter}"
+    fi
+    if [[ -n "$k" ]]; then
+        suffix+="_${k}_${w}"
+    fi
     if [ "$mapq_troubleshoot" == "mapq60" ]; then
-        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}${suffix}_${mapq_troubleshoot}
         mkdir -p $results_dir
-        cp $wd/results/${markname}/${pipeline}_${ref}/params.txt $results_dir
+        cp $wd/results/${markname}/${pipeline}_${ref}${suffix}/params.txt $results_dir
         sed -i 's/^treatment=.*/treatment=treatment_alignments.edited.json/' $results_dir/params.txt
         # "Alignment" which means editing mapq
         if [[ " $steps " =~ 3 ]]; then
-            edit_mapq $markname $pipeline $ref
+            edit_mapq "$wd/results/${markname}/${pipeline}_${ref}${suffix}" $markname $pipeline $ref $mapq_filter
         fi
         trm_json="treatment_alignments.edited.json"
     elif [ "$mapq_troubleshoot" == "inject" ]; then
-        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}
+        results_dir=$wd/results/${markname}/${pipeline}_${ref}_${mapq_troubleshoot}${suffix}
         mkdir -p $results_dir
         # Inject alignment
         if [[ " $steps " =~ 3 ]]; then
@@ -416,21 +435,17 @@ chipseq_graph() {
         trm_json="treatment_alignments.filtered.json"
     else
         base="$wd/results/${markname}/${pipeline}_${ref}"
-        suffix=""
         if [[ $mapq_troubleshoot =~ ^hard_hit_cap[[:space:]]+([0-9]+)$ ]]; then
             cap="${BASH_REMATCH[1]}"
             mapq_troubleshoot="hard_hit_cap"
             suffix+="_${mapq_troubleshoot}_${cap}"
         fi
-        if [[ -n "$k" ]]; then
-        suffix+="_${k}_${w}"
-        fi
         results_dir="${base}${suffix}"
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
-            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $k $w $cap
+            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $mapq_filter $k $w $cap
             if [ -n "$forward_ctl" ]; then
-                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $k $w $cap
+                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $mapq_filter $k $w $cap
             fi
         fi
         trm_json="treatment_alignments.filtered.json"

@@ -1,3 +1,32 @@
+=== 2025-07-04 01:25:45 ===
+K27_FLU vg_giraffe vcfbub 4 5 6 mapq60 mapq10 k=17 w=7 -> job_id:45778430
+K27_FLU vg_giraffe vcfbub 4 5 6 '' mapq10 k=17 w=7 -> job_id:45778431
+=== 2025-07-03 08:04:03 ===
+K27_FLU vg_giraffe vcfbub 3 4 5 6 mapq60 mapq10 k=17 w=7 -> job_id:45741263
+=== 2025-07-03 07:03:40 ===
+K27_FLU vg_giraffe vcfbub 3 4 5 6 '' mapq10 k=17 w=7 -> job_id:45740269
+=== 2025-07-03 01:15:54 ===
+K27_FLU vg_giraffe chm13 3 4 5 6 '' k= w=-> job_id:45732653
+
+=== 2025-07-01 08:59:58 === Run for whole genome
+K27_FLU vg_giraffe chm13 3 4 'hard_hit_cap 1000' k=17 w=7-> job_id:45627437
+K27_FLU vg_giraffe chm13 3 4 'hard_hit_cap 750' k=17 w=7-> job_id:45627438
+=== 2025-07-01 02:09:29 ===
+K27_FLU vg_giraffe vcfbub_chr6_42M_45M 3 4 'hard_hit_cap 1000' k=7 w=2-> job_id:45619266
+K27_FLU vg_giraffe vcfbub_chr6_42M_45M 3 4 'hard_hit_cap 750' k=7 w=2-> job_id:45619269
+K27_FLU vg_giraffe vcfbub_chr6_42M_45M 3 4 'hard_hit_cap 1000' k=9 w=3-> job_id:45619268
+K27_FLU vg_giraffe vcfbub_chr6_42M_45M 3 4 'hard_hit_cap 750' k=9 w=3-> job_id:45619267
+
+=== 2025-06-19 05:12:47 ===
+146 vg_giraffe vcfbub 2 5 6 '' k= w=-> job_id:45065630
+=== 2025-06-11
+comparing 146 read locations -> job_id:44770045
+comparing K27_FLU read locations -> job_id:44770035
+
+samtools view -f4 results/iPSC_K27/vg_giraffe_vcfbub/treatment_alignments.bam \
+  | awk '$5 == 0' \
+  | wc -l
+
 === 2025-06-07 09:06:03 ===
 K27_FLU vg_giraffe chm13 3 4 'hard_hit_cap 1000' k=7 w=2-> job_id:44687915
 K27_FLU vg_giraffe chm13 3 4 'hard_hit_cap 750' k=7 w=2-> job_id:44687917
@@ -9,8 +38,7 @@ K27_FLU vg_giraffe chm13 3 4 'hard_hit_cap 1000' k=9 w=3-> job_id:44687916
 146 vg_giraffe chm13 3 4 5 6 '' k= w=-> job_id:44625603
 146 vg_giraffe chm13 7 '' k= w=-> job_id:44536882 --> to recreate the all_linear_peaks.bed because missing chr that are diff from previous err log
 146 vg_giraffe vcfbub 7 '' k= w=-> job_id:44536748 --> to recreate the all_linear_peaks.bed because missing chr that are diff from previous err log
-comparing 146 read locations -> job_id:44626165
-comparing K27_FLU read locations -> job_id:44623876
+
 
 === 2025-06-03
 146 vg_giraffe chm13 7 inject k= w=-> job_id:44533627 --> to recreate the all_peaks.intevalcollection but cannot because no chrY

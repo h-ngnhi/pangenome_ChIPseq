@@ -23,7 +23,7 @@ export wd=$(pwd)
 # Get input data
 input() {
     local markname=$1
-    if [ -z "$k" ]; then 
+    # if [ -z "$k" ]; then 
         if [ $markname == "K27_FLU" ]; then
             data_dir=$wd/results/K27_FLU/linear_chm13/trim
             forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment1_15.trim.pair1.fastq.gz"
@@ -50,21 +50,21 @@ input() {
         #     forward_ctl="$data_dir/Input.trim.pair1.fastq.gz"
         #     reverse_ctl="$data_dir/Input.trim.pair2.fastq.gz"
         # fi
-    else # Use smaller dataset to test for k and w, no need to care about alignment of control
-        if [ $markname == "iPSC_K27" ]; then
-            data_dir=$wd/data/iPSC
-            forward_trm="$data_dir/Treatment.pair1.chr6.42M_45M.8.fastq.gz"
-            reverse_trm="$data_dir/Treatment.pair2.chr6.42M_45M.8.fastq.gz"
-            forward_ctl=""
-            reverse_ctl=""
-        elif [ $markname == "K27_FLU" ]; then
-            data_dir=$wd/results/K27_FLU/linear_chm13/trim
-            forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair1.chr6.42M_45M.15.fastq.gz"
-            reverse_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair2.chr6.42M_45M.15.fastq.gz"
-            forward_ctl=""
-            reverse_ctl=""
-        fi
-    fi
+    # else # Use smaller dataset to test for k and w, no need to care about alignment of control
+    #     if [ $markname == "iPSC_K27" ]; then
+    #         data_dir=$wd/data/iPSC
+    #         forward_trm="$data_dir/Treatment.pair1.chr6.42M_45M.8.fastq.gz"
+    #         reverse_trm="$data_dir/Treatment.pair2.chr6.42M_45M.8.fastq.gz"
+    #         forward_ctl=""
+    #         reverse_ctl=""
+    #     elif [ $markname == "K27_FLU" ]; then
+    #         data_dir=$wd/results/K27_FLU/linear_chm13/trim
+    #         forward_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair1.chr6.42M_45M.15.fastq.gz"
+    #         reverse_trm="$data_dir/H3K27AC_treatment1/H3K27AC/Treatment.pair2.chr6.42M_45M.15.fastq.gz"
+    #         forward_ctl=""
+    #         reverse_ctl=""
+    #     fi
+    # fi
 }
 
 # Parameters
@@ -74,10 +74,11 @@ pipeline="$2"
 ref="$3"
 steps="$4"
 mapq_troubleshoot="$5"
-k="$6"
-w="$7"
+mapq_filter="$6"
+k="$7"
+w="$8"
 # echo "Running chipseq_graph for mark: $this_mark"
-chipseq_graph "$mark" "$pipeline" "$ref" "$steps" "$mapq_troubleshoot" "$k" "$w"
+chipseq_graph "$mark" "$pipeline" "$ref" "$steps" "$mapq_troubleshoot" "$mapq_filter" "$k" "$w"
 
 end_time=$(date +%s)
 elapsed=$(( (end_time - start_time) / 3600 ))
