@@ -1,3 +1,49 @@
+=== 2025-12-16 07:15:06 ===
+YY1_2102Ep vg_giraffe chm13 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq20 k= w= -> job_id:53725508
+YY1_2102Ep vg_giraffe vcfbub 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq20 k= w= -> job_id:53725509
+=== 2025-10-07 15:25:51 ===
+s4_iPSC_K27me3 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:50664268
+s4_iPSC_K27me3 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:50664269
+=== 2025-10-07 15:20:32 ===
+s4_naive_iPSC_K27 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:50664035
+s4_naive_iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:50664036
+=== 2025-10-07 05:14:16 ===
+s4_iPSC_K27 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:50647008
+s4_iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:50647009
+=== 2025-10-06 23:35:03 ===
+146 vg_giraffe vcfbub 6 '' '' mapq30 k= w= -> job_id:50641421
+=== 2025-10-06 21:39:03 ===
+s4_iPSC_K27 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:50638107
+s4_iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:50638108
+=== 2025-10-06 20:42:22 ===
+s4_iPSC_K27 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:50637400
+s4_iPSC_K27 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:50637401
+=== 2025-10-06 09:16:22 ===
+146 vg_giraffe vcfbub 2 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:50608924
+=== 2025-10-06 01:44:41 ===
+146 vg_giraffe vcfbub 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:50605205
+146 vg_giraffe chm13 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:50605204
+=== 2025-09-04 22:20:43 ===
+SOX6 vg_giraffe chm13 3 4 5 6 '' '' mapq30 k= w= -> job_id:49271541
+SOX6 vg_giraffe vcfbub 3 4 5 6 '' '' mapq30 k= w= -> job_id:49271542
+=== 2025-09-04 09:11:59 ===
+SOX6 vg_giraffe vcfbub 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:49244012
+SOX6 vg_giraffe chm13 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:49244013
+Forward matches: 18833
+Reverse-complement matches: 18462
+
+=== 2025-08-28 04:24:11 ===
+146 vg_giraffe vcfbub 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:48943394
+=== 2025-08-28 04:09:48 ===
+146 vg_giraffe chm13 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:48943036
+=== 2025-08-28 04:09:00 ===
+146 vg_giraffe vcfbub 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq30 k= w= -> job_id:48943009
+=== 2025-08-28 01:56:03 ===
+146 vg_giraffe vcfbub 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq'' k= w= -> job_id:48936052
+146 vg_giraffe chm13 3 4 5 6 '' '--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8' mapq'' k= w= -> job_id:48936053
+
+=== 2025-08-05 03:56:16 ===
+iPSC_K27 vg_giraffe NCLCN-261 2 3 4 5 6 '' mapq10 k= w= -> job_id:47464207
 === 2025-07-04 01:25:45 ===
 K27_FLU vg_giraffe vcfbub 4 5 6 mapq60 mapq10 k=17 w=7 -> job_id:45778430
 K27_FLU vg_giraffe vcfbub 4 5 6 '' mapq10 k=17 w=7 -> job_id:45778431

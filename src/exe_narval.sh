@@ -1,11 +1,12 @@
 #!/bin/bash 
+set -euo pipefail
 
 export wd=$(pwd)
 # Define parameters
-export mark_triple=("K27_FLU 17 7") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
+export mark_triple=("YY1_2102Ep") # e.g., K27_FLU, 146, 507, or iPSC_K27 then k and w if test for giraffe param Eg. "146 17 7"
 pipeline=("vg_giraffe")       # vg_giraffe or vg_map
-ref=("vcfbub")               # e.g., chm13, L1_vcfbub, vcfbub, or hprc-v1.1-mc-chm13
-steps="4 5 6"             # Steps of the pipeline
+ref=("chm13" "vcfbub")               # e.g., chm13, L1_vcfbub, vcfbub, or hprc-v1.1-mc-chm13
+steps="3 4 5 6"             # Steps of the pipeline
         # Steps of the pipeline
             # 1. Construct the graph
             # 2. Split the graph
@@ -15,15 +16,20 @@ steps="4 5 6"             # Steps of the pipeline
             # 6. Call peaks + Callpeaks_whole_genome_from_p_values + Find linear
             # 7. Callpeaks_whole_genome_from_p_values + Find linear
       
-mapq_troubleshoot=("" "mapq60")        # mapq60 or inject or hard_hit_cap or "" - for troubleshooting mapq
+mapq_troubleshoot=("")        # mapq60 or inject  "" - for troubleshooting mapq
         # mapq60 is to change all alignments with MAPQ < 60 to 60 then call peaks
         # inject is to inject the linear reads into the graph then call peaks
-        # hard_hit_cap is to increase the hard hit reads to be larger than default 500
-
-mapq_filter=("10")      #"30" at default will remove all alignments with MAPQ < 30
+        
+giraffe_extraoptions=("--hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8")
+        # --hard-hit-cap 2500 --hit-cap 100 --score-fraction 0.8
+        # hard_hit_cap to rescue minimizers that have more hits than default 500 (important for repetitive datasets)
+        # hit-cap to avoid down-weight minimizers that exceed default 10 hits (important for repetitive datasets)
+        # in a repetitive dataset, almost all minimizers are down-weighted, to reach default 0.9 will need to keep almost
+        #       all of them which could be already dropped results in no cluster downstream
+mapq_filter=("20")      #"30" at default will remove all alignments with MAPQ < 30
 
 # # Export variables for the job (they will be available in the sbatch command)
-export pipeline ref steps mapq_troubleshoot
+export pipeline ref steps mapq_troubleshoot giraffe_extraoptions
 
 # Name of the log file
 LOG_FILE="$wd/pangenome_ChIPseq/april_june_2025.txt"
@@ -32,12 +38,17 @@ TEMP_LOG="$wd/pangenome_ChIPseq/temp_job_log.txt"
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" > "$TEMP_LOG"
 # Use GNU Parallel to submit up to 5 jobs concurrently.
 # Use double quotes in the parallel command so variables get expanded.
-parallel -j5 --linebuffer "
+parallel -j6 --linebuffer "
     IFS=' ' read mark k w <<< {1};
-    JOB_OUT=\$(sbatch -J chipseq_\${mark}_{2}_{3} \$wd/pangenome_ChIPseq/src/exe.sh \$mark {2} {3} \"\$steps\" {4} {5} \$k \$w)
+    JOB_OUT=\$(sbatch -J chipseq_\${mark}_{2}_{3} \$wd/pangenome_ChIPseq/src/exe.sh \$mark {2} {3} \"\$steps\" {4} {5} {6} \$k \$w)
     JOB_ID=\$(echo \"\$JOB_OUT\" | awk '{print \$4}')
-    echo \"\$mark {2} {3} \$steps {4} mapq{5} k=\$k w=\$w -> job_id:\$JOB_ID\"
-" ::: "${mark_triple[@]}" ::: "${pipeline[@]}" ::: "${ref[@]}" ::: "${mapq_troubleshoot[@]}" ::: "${mapq_filter[@]}" >> "$TEMP_LOG"
+    echo \"\$mark {2} {3} \$steps {4} {5} mapq{6} k=\$k w=\$w -> job_id:\$JOB_ID\"
+" ::: "${mark_triple[@]}" \
+  ::: "${pipeline[@]}" \
+  ::: "${ref[@]}" \
+  ::: "${mapq_troubleshoot[@]}" \
+  ::: "${giraffe_extraoptions[@]}" \
+  ::: "${mapq_filter[@]}" >> "$TEMP_LOG"
 
 # parallel -j5 --linebuffer "
 #     JOB_OUT=\$(sbatch -J bwa_{1} \$wd/temp2.sh {1})

@@ -32,11 +32,13 @@ create_readset() {
     local reverse_trm=($3)
     local forward_ctl=($4)
     local reverse_ctl=($5)
-    local result_dir=$6
+    local adapter1="AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+    local adapter2="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
 
     num_treatment=${#forward_trm[@]}
+    num_ctl=${#forward_ctl[@]}
     # Output TSV file name
-    output_tsv="$result_dir/${markname}.readset.tsv"
+    output_tsv="${markname}.readset.tsv"
     echo $output_tsv
 
     # Write the header of the TSV file
@@ -44,22 +46,23 @@ create_readset() {
 
     # Write the treatment line(s) to the TSV file
     for num in $(seq 1 $num_treatment); do
-        sample="${markname}_treatment_$num"
+        sample="$markname"
         readset="treatment_$num"
-        fastq1="${forward_trm[$((num-1))]}.gz"
-        fastq2="${reverse_trm[$((num-1))]}.gz"
+        fastq1="${forward_trm[$((num-1))]}"
+        fastq2="${reverse_trm[$((num-1))]}"
 
-        echo -e "$sample\t$readset\t$markname\tN\t\tPAIRED_END\trun10\t1\t\t\t33\t\t$fastq1\t$fastq2\t" >> $output_tsv
+        echo -e "$sample\t$readset\t$markname\tN\t\tPAIRED_END\trun10\t1\t$adapter1\t$adapter2\t33\t\t$fastq1\t$fastq2\t" >> $output_tsv
     done
 
     # Write the control line to the TSV file
-    sample="${markname}_control"
-    readset="control"
-    fastq1="${forward_ctl[0]}.gz"
-    fastq2="${reverse_ctl[0]}.gz"
+    for num in $(seq 1 $num_ctl); do
+        sample="$markname"
+        readset="control_$num"
+        fastq1="${forward_ctl[$((num-1))]}"
+        fastq2="${reverse_ctl[$((num-1))]}"
 
-    echo -e "$sample\t$readset\tInput\tI\t\tPAIRED_END\trun10\t1\t\t\t33\t\t$fastq1\t$fastq2\t" >> $output_tsv
-
+        echo -e "$sample\t$readset\tInput\tI\t\tPAIRED_END\trun10\t1\t$adapter1\t$adapter2\t33\t\t$fastq1\t$fastq2\t" >> $output_tsv
+    done
     # Notify user
     echo "TSV file '$output_tsv' created successfully."
 }
@@ -67,10 +70,9 @@ create_readset() {
 #3. design file creator
 create_design() {
     local markname=$1
-    local result_dir=$2
 
     # Output file name
-    output_txt="$result_dir/${markname}.design.txt"
+    output_txt="${markname}.design.txt"
 
     # Write the header to the design file
     echo -e "Sample\tMarkName\t${markname}_vs_${markname}Input" > $output_txt
@@ -81,11 +83,12 @@ create_design() {
         echo -e "$sample\t$markname\t0" >> $output_txt
     done
 
-    # Write the control line to the design file
-    sample="$markname"
-    marktype="Input"
-    echo -e "$sample\t$marktype\t0" >> $output_txt
-
+    for num in $(seq 1 $num_ctl); do
+        # Write the control line to the design file
+        sample="$markname"
+        marktype="Input"
+        echo -e "$sample\t$marktype\t0" >> $output_txt
+    done
     # Notify user
     echo "Design file '$output_txt' created successfully."
 }
@@ -108,20 +111,22 @@ create_design() {
     # }
 create_config() {
     local ref=$1                    # Directory for linear reference FASTA
-    local result_dir=$2
-    output_ini_file="$result_dir/t2t.ini"
+    output_ini_file="t2t.ini"
 
     # Create and write content to the ini file
-    cat <<EOL > $output_ini_file
+            
+    if [ -z "$ref" ]; then
+        cat <<EOL > $output_ini_file
 [DEFAULT]
 assembly=T2T-CHM13v2.0
-genome_fasta=$ref
-genome_dictionary=${ref%.*}.dict
-genome_bwa_index=${ref%.*}.bwaindex.fa
-chromosome_size=$ref.fai
+assembly_dir=$MUGQIC_INSTALL_HOME_DEV/genomes/species/%(scientific_name)s.%(assembly)s
+genome_fasta=%(assembly_dir)s/genome/Homo_sapiens.T2T-CHM13v2.0.maskedY.rCRS.EBV.fa
+genome_dictionary=%(assembly_dir)s/genome/Homo_sapiens.T2T-CHM13v2.0.maskedY.rCRS.EBV.dict
+genome_bwa_index=%(assembly_dir)s/genome/bwa-mem_index/Homo_sapiens.T2T-CHM13v2.0.maskedY.rCRS.EBV.fa
+chromosome_size=%(assembly_dir)s/genome/Homo_sapiens.T2T-CHM13v2.0.maskedY.rCRS.EBV.fa.fai
 
 [trimmomatic]
-min_length = 98
+min_length = 90
 
 [sambamba_view_filter]
 min_mapq = 30
@@ -131,27 +136,74 @@ extsize = 150
 other_options = --keep-dup all
 EOL
 
+    else
+        cat <<EOL > $output_ini_file
+[DEFAULT]
+assembly=T2T-CHM13v2.0
+genome_fasta=$ref
+genome_dictionary=${ref%.*}.dict
+genome_bwa_index=${ref%.*}.bwaindex.fa
+chromosome_size=$ref.fai
+
+[trimmomatic]
+min_length = 0
+
+[sambamba_view_filter]
+min_mapq = 30
+
+[macs2_callpeak]
+extsize = 150
+other_options = --keep-dup all
+EOL
+    fi
+
     # Notify user
     echo "INI file '$output_ini_file' created successfully."
 }
 
 #5. Run chipseq
-chipseq_gp() {
-    local markname=$1
-    local result_dir=$2
-    local extra_options=$3
+chipseq_linear() {
+    local markname="$1"
+    local result_dir="$wd/results/${markname}"
+    local ref="$2"
+    local steps="$3"
+        # Steps of the pipeline
+            # 1. Create readset, design files
+            # 2. Create ini file
+            # 3. Run GenPipes
+    local extra_options="$4" # for GenPipes
 
     module load mugqic/genpipes/4.4.5
     module load mugqic/python/3.10.4
     mkdir -p $result_dir
     cd $result_dir || exit
-    directory=linear_chm13
-    mkdir -p $directory
-    chipseq.py -c $MUGQIC_PIPELINES_HOME/pipelines/chipseq/chipseq.base.ini \
-                    $MUGQIC_PIPELINES_HOME/pipelines/common_ini/narval.ini t2t.ini \
-                    -r ${markname}.readset.tsv -d ${markname}.design.txt \
-                    -o $directory $extra_options > "chipseqScript_${markname}.txt" 
-    bash "chipseqScript_${markname}.txt" 
+
+    # Get input data
+    input $markname "linear"
+
+    #1. Create readset, design files
+    if [[ " $steps " =~ 1 ]]; then
+        echo "Creating readset and design files for $markname..."
+        create_readset $markname "$forward_trm" "$reverse_trm" "$forward_ctl" "$reverse_ctl"
+        create_design $markname 
+    fi
+    #2. Create ini file
+    if [[ " $steps " =~ 2 ]]; then
+        echo "Creating ini file for $markname..."
+        create_config $ref
+    fi
+
+    #3. Run GenPipes
+    if [[ " $steps " =~ 3 ]]; then
+        echo "Running GenPipes ChipSeq pipeline for $markname..."
+        directory=linear_chm13
+        mkdir -p $directory
+        chipseq.py -c $MUGQIC_PIPELINES_HOME/pipelines/chipseq/chipseq.base.ini \
+                        $MUGQIC_PIPELINES_HOME/pipelines/common_ini/narval.ini t2t.ini \
+                        -r ${markname}.readset.tsv -d ${markname}.design.txt \
+                        -o $directory $extra_options > "chipseqScript_${markname}.txt" 
+        bash "chipseqScript_${markname}.txt" 
+    fi
     cd $wd || exit
 }
 
@@ -329,13 +381,13 @@ enrichment_calc_all_subfam() {
         enrichment_calc_subfam $bed_path $bed_file $csv_file $te $subfam $blacklist
     done
 }
-bed_path="results/146/linear_chm13/peak_call/146/ZNF146"   # to locate the bed file
-bed_file=146.ZNF146_peaks   # to take the file name and create downstream files
-te=L1       # to use which ref genome
-csv_file=Genome/Subfamily_RM_146/hg38/${te}_enr.csv   # to write the enrichment csv file
-blacklist=Genome/Blacklist/ENCFF356LFX.hg38.bed  # to use which blacklist file
-row_title=146_${te}_linear_chm13   # to use which row title
-# enrichment_calc_all_subfam $bed_path $bed_file $csv_file $te $blacklist
-echo "L1HS" >> $csv_file
-ref=hg38
-# enrichment_calc_subfam "$bed_path" $bed_file $csv_file $te L1HS $blacklist $ref 146
+# bed_path="results/146/linear_chm13/peak_call/146/ZNF146"   # to locate the bed file
+# bed_file=146.ZNF146_peaks   # to take the file name and create downstream files
+# te=L1       # to use which ref genome
+# csv_file=Genome/Subfamily_RM_146/hg38/${te}_enr.csv   # to write the enrichment csv file
+# blacklist=Genome/Blacklist/ENCFF356LFX.hg38.bed  # to use which blacklist file
+# row_title=146_${te}_linear_chm13   # to use which row title
+# # enrichment_calc_all_subfam $bed_path $bed_file $csv_file $te $blacklist
+# echo "L1HS" >> $csv_file
+# ref=hg38
+# # enrichment_calc_subfam "$bed_path" $bed_file $csv_file $te L1HS $blacklist $ref 146

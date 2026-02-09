@@ -8,14 +8,14 @@ vg_giraffe_graph() {            # To create graph and index for vg giraffe
     mkdir -p $graph_dir
     cd $graph_dir || exit
     if [ "$graph_type" == "chm13" ]; then
-        vg autoindex --workflow giraffe -r $ref -p $graph_type --threads 64
+        vg autoindex --workflow giraffe -r $ref -p $graph_type --threads 8
     else
-        vg autoindex --workflow giraffe -r $ref -v $variant_vcf -p $graph_type --threads 64
+        vg autoindex --workflow giraffe -r $ref -v $variant_vcf -p $graph_type --threads 8 
     fi
     mv $graph_type.giraffe.gbz $graph_type.gbz
     cd $wd || exit
 }
-
+# vg_giraffe_graph $out_vcf $wd/Graph_genome_data/chm13v2.0.fa NCLCN_round4
 
 vg_map_graph() {                 # To create graph and index for vg map
     local variant_vcf=$1
@@ -90,17 +90,18 @@ align() {
     local graph_type=$2        # basename of graph, empty "" if using vg_map
     local min_file=$3        # full path to .min file, empty "" if using vg_map
     local input=$4        # prefix for output
-    local forward=("$5")        
-    local reverse=("$6")        
+    local forward reverse
+    read -r -a forward <<< "$5"   # split the space-joined R1s
+    read -r -a reverse <<< "$6"   # split the space-joined R2s
     local extra_opt=$7        # any extra vg giraffe flags
     
     
     alignments=()
     for i in "${!forward[@]}"; do
         if [ -z "$graph_type" ] && [ -z "$min_file" ]; then
-            vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f ${forward[i]} -f ${reverse[i]} -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
+            vg map -x $graph_dir/graph.xg -g $graph_dir/graph.gcsa -f "${forward[i]}" -f "${reverse[i]}" -t 40 -u 1 -m 1 > ${input}_alignments_$((i+1)).gam
         else
-            vg giraffe -Z $graph_dir/$graph_type.gbz -m $min_file -d $graph_dir/$graph_type.dist -f ${forward[i]} -f ${reverse[i]} -t 64 $extra_opt > ${input}_alignments_$((i+1)).gam
+            vg giraffe -Z $graph_dir/$graph_type.gbz -m $min_file -d $graph_dir/$graph_type.dist -f "${forward[i]}" -f "${reverse[i]}" -t 64 $extra_opt > ${input}_alignments_$((i+1)).gam
         fi
         alignments+=("${input}_alignments_$((i+1)).gam")
     done
@@ -111,33 +112,28 @@ alignment() {                   # To map reads using vgmap
     local pipeline=$1       # vg_giraffe or vg_map
     local graph_type=$2     # chm13 or vcfbub
     local results_dir=$3    # result directory
-    local forward=("$4")      # Array of forward reads
-    local reverse=("$5")      # Array of reverse reads
+    local forward reverse
+    read -r -a forward <<< "$4"   # split "R1 R1"
+    read -r -a reverse <<< "$5"   # split "R2 R2"
     local input=$6          # treatment or control
     local graph_dir=$wd/Pangenomes/$pipeline/$graph_type
-    local mapq_filter=$7
-    local k=$8
-    local w=$9
-    local cap=${10}            # hard hit cap, default is 500, can be set to more
-    
+    local mapq_filter=$7 k=$8 w=$9 giraffe_extraoptions="${10}"
+
     mkdir -p $results_dir
     cd $results_dir || exit
     alignments=()
     if [ "$pipeline" == "vg_giraffe" ]; then
-        if [ -n "$cap" ]; then
-                extra_option="--hard-hit-cap $cap"
-        fi
         if [ -n "$k" ]; then
             if [ ! -f "$graph_dir/$graph_type.k${k}w${w}.min" ]; then
                 vg minimizer -k $k -w $w -d $graph_dir/$graph_type.dist -o $graph_dir/$graph_type.k${k}w${w}.min $graph_dir/$graph_type.gbz
             fi
-            align $graph_dir $graph_type $graph_dir/$graph_type.k${k}w${w}.min $input "${forward[@]}" "${reverse[@]}" "$extra_option"
+            align $graph_dir $graph_type $graph_dir/$graph_type.k${k}w${w}.min $input "${forward[*]}" "${reverse[*]}" "$giraffe_extraoptions"
         else
-            align $graph_dir $graph_type $graph_dir/$graph_type.min $input "${forward[@]}" "${reverse[@]}" "$extra_option"
+            align $graph_dir $graph_type $graph_dir/$graph_type.min $input "${forward[*]}" "${reverse[*]}" "$giraffe_extraoptions"
         fi
         vg surject -x $graph_dir/$graph_type.gbz -b ${input}_alignments.gam > ${input}_alignments.bam
     elif [ "$pipeline" == "vg_map" ]; then
-        align $graph_dir "" "" $input "${forward[@]}" "${reverse[@]}"
+        align $graph_dir "" "" $input "${forward[*]}" "${reverse[*]}"
         vg surject -x $graph_dir/graph.xg -b ${input}_alignments.gam > ${input}_alignments.bam
     fi
     vg filter ${input}_alignments.gam -P -fu -q $mapq_filter -t 64 > ${input}_alignments.filtered.gam
@@ -310,6 +306,8 @@ EOL
             chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
             graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
             wc -l all_peaks.intervalcollection >> \$results_dir/results.txt
+            cat *_linear_peaks.bed > all_linear_peaks.bed
+            cd /mnt/
         fi
 
         if [[ \" \$steps \" =~ 7 ]]; then
@@ -329,6 +327,7 @@ EOL
             chromosomes=\"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrM\"
             graph_peak_caller concatenate_sequence_files \$chromosomes all_peaks.fasta
             wc -l all_peaks.intervalcollection >> \$results_dir/results.txt
+            cat *_linear_peaks.bed > all_linear_peaks.bed
             cd /mnt/
         fi
     "
@@ -372,14 +371,8 @@ inject_bam() {
 }
 
 chipseq_graph() {
-    local markname=$1
-    local pipeline=$2
-    local ref=$3
-    local steps=$4
-    local mapq_troubleshoot=$5
-    local mapq_filter=$6
-    local k=$7
-    local w=$8
+    local markname=$1 pipeline=$2 ref=$3 steps=$4 mapq_troubleshoot=$5
+    local giraffe_extraoptions=$6 mapq_filter=$7 k="$8" w="$9"
 
         # Steps of the pipeline
             # 1. Construct the graph
@@ -404,14 +397,14 @@ chipseq_graph() {
     fi
 
     # Get input data
-    input $markname
+    input $markname "graph"
     
     # Identify results directory for each edit (mapq60, inject, or just normal run "")
     # 3. Alignment if step=3
     suffix=""
-    if [ "$mapq_filter" != "30" ]; then
-        suffix+="_mqfilter${mapq_filter}"
-    fi
+    # if [ "$mapq_filter" != "30" ]; then
+        # suffix+="_mqfilter${mapq_filter}"
+    # fi
     if [[ -n "$k" ]]; then
         suffix+="_${k}_${w}"
     fi
@@ -435,17 +428,18 @@ chipseq_graph() {
         trm_json="treatment_alignments.filtered.json"
     else
         base="$wd/results/${markname}/${pipeline}_${ref}"
-        if [[ $mapq_troubleshoot =~ ^hard_hit_cap[[:space:]]+([0-9]+)$ ]]; then
-            cap="${BASH_REMATCH[1]}"
-            mapq_troubleshoot="hard_hit_cap"
-            suffix+="_${mapq_troubleshoot}_${cap}"
-        fi
+        giraffe_suffix(){ local s="$*"; s=${s#(}; s=${s%)}; local out=; set -- $s
+        while (( $# )); do [[ $1 == --* ]] && { o=${1#--}; o=${o//-/}; shift
+            [[ $o == *=* ]] && n=${o%%=*} v=${o#*=} || { n=$o; [[ $1 && $1 != -* ]] && { v=$1; shift; }; }
+            out+=_"${n,,}${v}"; } || shift; done; echo "$out"; }
+
+        suffix+=$(giraffe_suffix "$giraffe_extraoptions")
         results_dir="${base}${suffix}"
         # Alignment
         if [[ " $steps " =~ 3 ]]; then
-            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" $mapq_filter $k $w $cap
+            alignment $pipeline $ref $results_dir "$forward_trm" "$reverse_trm" "treatment" "$mapq_filter" "$k" "$w" "$giraffe_extraoptions"
             if [ -n "$forward_ctl" ]; then
-                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" $mapq_filter $k $w $cap
+                alignment $pipeline $ref $results_dir "$forward_ctl" "$reverse_ctl" "control" "$mapq_filter" "$k" "$w" "$giraffe_extraoptions"
             fi
         fi
         trm_json="treatment_alignments.filtered.json"
@@ -467,43 +461,46 @@ graffiTE() {
     local te=$2
 
     # #1. Make the graph biallelic because GraffiTE can't work with multiallelic variants
-    # module load bcftools/1.19
-    # zcat $graph_vcf.vcf.gz | bcftools norm -m- -o $graph_vcf.norm.vcf
+    module load bcftools/1.19
+    zcat $graph_vcf.vcf.gz | bcftools norm -m- -o $graph_vcf.norm.vcf
 
     # #2. Filter variants that's less than 60bp
-    # awk 'BEGIN {FS="\t"; OFS="\t"} /^#/ {print $0; next} {if (length($4) >= 60 || length($5) >= 60) print $0}' $graph_vcf.norm.vcf > $graph_vcf.filt.vcf
+    awk 'BEGIN {FS="\t"; OFS="\t"} /^#/ {print $0; next} {if (length($4) >= 60 || length($5) >= 60) print $0}' $graph_vcf.norm.vcf > $graph_vcf.filt.vcf
 
     # #3. Check if variants are unique, rename if not
-    # DUPS=$(awk '!/^#/ {print $3}' "$graph_vcf.filt.vcf" | sort | uniq -d)
+    DUPS=$(awk '!/^#/ {print $3}' "$graph_vcf.filt.vcf" | sort | uniq -d)
 
-    # if [ -n "$DUPS" ]; then
-    #     #Use awk to process the VCF file and rename the variant IDs
-    #     awk 'BEGIN { OFS="\t"; id=1; } {if ($0 ~ /^#/) {print $0;} else {$3 = "var" id++;print $0;}}' $graph_vcf.filt.vcf > $graph_vcf.renamed.vcf
-    # else
-    #     mv $graph_vcf.filt.vcf $graph_vcf.renamed.vcf
-    # fi
+    if [ -n "$DUPS" ]; then
+        #Use awk to process the VCF file and rename the variant IDs
+        awk 'BEGIN { OFS="\t"; id=1; } {if ($0 ~ /^#/) {print $0;} else {$3 = "var" id++;print $0;}}' $graph_vcf.filt.vcf > $graph_vcf.renamed.vcf
+    else
+        mv $graph_vcf.filt.vcf $graph_vcf.renamed.vcf
+    fi
 
-    awk 'BEGIN { FS=OFS="\t" }
-    {
-        # Skip header lines
-        if ($0 ~ /^##/ || $0 ~ /^#CHROM/) {
-            print $0
-        } else {
-            # Replace ">" with "-" in the ID column (3rd column)
-            gsub(">", "-", $3)
-            print $0
-    }
-    }' $graph_vcf.renamed.vcf > $graph_vcf.edited.vcf
+    # awk 'BEGIN { FS=OFS="\t" }
+    # {
+    #     # Skip header lines
+    #     if ($0 ~ /^##/ || $0 ~ /^#CHROM/) {
+    #         print $0
+    #     } else {
+    #         # Replace ">" with "-" in the ID column (3rd column)
+    #         gsub(">", "-", $3)
+    #         print $0
+    # }
+    # }' $graph_vcf.renamed.vcf > $graph_vcf.edited.vcf
 
     #3. Filter top-level variant through vcfbub (No need to if already build the graph with vcfbub vcf file before)
     vcfbub --input $graph_vcf.edited.vcf --max-level 0 --max-ref-length 10000  > $graph_vcf.toplev.vcf
 
     #4. Run GraffiTE
-
-    module load nextflow/23.10.0
+    export NXF_WORK="/lustre07/scratch/hoangnhi/temp/work"
+    export NXF_TEMP="/lustre07/scratch/hoangnhi/temp/tmp"
+    module load nextflow
     module load apptainer
+    file="$graph_vcf.toplev.vcf"
+    file="/home/hoangnhi/projects/def-bourqueg/hoangnhi/troubleshooting_testset/vcfbub.filt.setid.multisample.vcf.gz"
     nextflow run $wd/tools/GraffiTE/main.nf \
-        --vcf $graph_vcf.toplev.vcf \
+        --vcf $file \
         --TE_library $wd/GraffiTE_testset/human_DFAM3.6.fasta \
         --reference $wd/Graph_genome_data/chm13v2.0.fa \
         --graph_method giraffe \
@@ -512,7 +509,8 @@ graffiTE() {
         --repeatmasker_time 12h \
         -with-singularity $wd/tools/graffite_latest.sif \
         -profile cluster \
-        --genotype false
+        --genotype false 
+
 
     #5. Filter TE variants
 

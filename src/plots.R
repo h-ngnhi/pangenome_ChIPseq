@@ -195,16 +195,16 @@ for (gene in genes) {
 # Plot histogram of mapping quality
 # Load required library
 library(ggplot2)
-wd <- "/home/hoangnhi/projects/def-bourqueg/hoangnhi/ZNF146-507-Analysis-on-Pangenome/"
+wd <- "/home/hoangnhi/projects/rrg-bourqueg-ad/hoangnhi/projects/"
+out_dir <- "part_results/unmapped_reads_146_hardhitcap2500_hitcap100_scorefraction0.8/unmapped_compare/"
+file <- "mapq_unmappedCHM_mappedVCF.txt"
 # bam_files=($wd/146_design2_t2t/alignment/146/ZNF146/146.ZNF146.sorted.dup.filtered.cleaned.bam $wd/507_design2_t2t/alignment/507/ZNF507/507.ZNF507.sorted.dup.filtered.cleaned.bam)
 
 # Define your working directory and the plot directory
 plot_dir <- paste0(wd,"plots/")
 
 # Define BAM files and genes
-bam_files <- c(paste0(wd, "146_design2_t2t/alignment/146/ZNF146/146.ZNF146.sorted.dup.filtered.cleaned.bam.mapping_score.txt"), 
-               paste0(wd, "507_design2_t2t/alignment/507/ZNF507/507.ZNF507.sorted.dup.filtered.cleaned.bam.mapping_score.txt"))
-gene <- c("bwa mem", "vg giraffe")
+bam_files <- c(paste0(wd, out_dir, file))
 
 for (i in seq_along(bam_files)) {
   bam_file <- bam_files[i]
@@ -224,14 +224,14 @@ for (i in seq_along(bam_files)) {
   #      border="black")
 
   # dev.off()
-  # p <- ggplot(mapping_scores, aes(x=mapping_score)) +
-  #   geom_histogram(binwidth=1, fill="blue", alpha=0.7, color="black") +
-  #   labs(title="Histogram of Mapping Scores", x="Mapping Score", y="Count") +
-  #   theme_minimal()
+  p <- ggplot(mapping_scores, aes(x=mapping_score)) +
+    geom_histogram(binwidth=1, fill="blue", alpha=0.7, color="black") +
+    labs(title="Histogram of Mapping Scores", x="Mapping Score", y="Count") +
+    theme_minimal()
 
-  # output_file <- paste0(plot_dir, Sys.Date(), ".", gene[i], ".L1_mapping_score.png")
-  # cat("Saving plot to:", output_file, "\n")
-  # ggsave(output_file, plot = p, width = 11, height = 4)
+  output_file <- paste0(wd, out_dir, Sys.Date(), "mapq_unmappedCHM_mappedVCF.png")
+  cat("Saving plot to:", output_file, "\n")
+  ggsave(output_file, plot = p, width = 11, height = 4)
 }
 
 
@@ -292,3 +292,42 @@ ggplot(mapping_scores, aes(x=mapping_score)) +
   theme_minimal()
 
 ggsave(paste0("plots/", Sys.Date(), ".CHM13-vgmap-idvl.H3K27ac_mapping_score.png"), plot = p, width = 11, height = 4)
+#####################################################################
+# Peak score distribution
+  # Load necessary library
+  library(ggplot2)
+
+  # Replace with your BED filename
+  bed_file <- "results/iPSC_K27/linear_chm13_w_trimmomatic/peak_call/iPSC_K27/iPSC_K27/iPSC_K27.iPSC_K27_peaks.narrowPeak.bed"
+  bed_file <-"results/iPSC_K27/linear_NCLCN-261_hap1/peak_call/iPSC_K27/iPSC_K27/iPSC_K27.iPSC_K27_peaks.narrowPeak.bed"
+  # Read the BED file (no header, tab-delimited)
+  bed <- read.table(bed_file, header = FALSE, sep = "\t", 
+                    comment.char = "", stringsAsFactors = FALSE)
+
+  # Assume the score is in column 5
+  scores <- bed$V5
+
+  # Put into a data frame
+  # df <- subset(bed, V5 > 25)
+
+  # Plot histogram of the score distribution
+  p <- ggplot(bed, aes(x = V5)) +
+    geom_histogram(bins = 50, color = "black", fill = "steelblue") +
+    theme_minimal() +
+    labs(
+      title = "Score Distribution",
+      x = "Score",
+      y = "Count"
+    )
+  ggsave(paste0("results/iPSC_K27/linear_chm13_w_trimmomatic/peak_call/iPSC_K27/iPSC_K27/", Sys.Date(), ".", "score_distribution.png"), plot = p, width = 11, height = 4)  
+
+  # (Optional) If you prefer a density plot:
+  p <- ggplot(df, aes(x = score)) +
+    geom_density(fill = "steelblue", alpha = 0.5) +
+    theme_minimal() +
+    labs(
+      title = "Score Density",
+      x = "Score",
+      y = "Density"
+    )
+
