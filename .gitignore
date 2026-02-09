@@ -1,0 +1,4 @@
+.gitignore
+.nextflow*
+past_progress
+genpipes
